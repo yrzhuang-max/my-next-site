@@ -32,9 +32,9 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm text-gray-500">
-          <Link href="/privacy-policy" className="hover:text-blue-600">Privacy Policy</Link>
-          <Link href="/terms-of-service" className="hover:text-blue-600">Terms of Service</Link>
-          <Link href="/cookie-policy" className="hover:text-blue-600">Cookie Policy</Link>
+          <Link href="/legal/privacy-policy" className="hover:text-blue-600">Privacy Policy</Link>
+          <Link href="/legal/terms-of-service" className="hover:text-blue-600">Terms of Service</Link>
+          <Link href="/legal/cookie-policy" className="hover:text-blue-600">Cookie Policy</Link>
           <a href="#" onClick={openCookieModal} className="hover:text-blue-400">
             Cookie Settings
           </a>

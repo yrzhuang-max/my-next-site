@@ -1,72 +1,92 @@
+'use client';
+import { useState } from 'react';
+import Button from '@/components/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/Card';
+
 export default function ContactPage() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [tip, setTip] = useState<{ text: string; ok: boolean } | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setTip(null);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTip({ text: '消息发送成功！我们会尽快回复您。', ok: true });
+        setName('');
+        setEmail('');
+        setMessage('');
+      } else {
+        setTip({ text: data.message || '发送失败，请重试', ok: false });
+      }
+    } catch () {
+      setTip({ text: '网络错误，请稍后再试', ok: false });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="py-12 md:py-16">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 text-gray-700">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Contact Us</h1>
-        <p className="mb-8">
-          Have questions, suggestions or business inquiries? Fill out the form below or send us an email directly.
-        </p>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Send a Message</h2>
-            <form className="space-y-4">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Contact Us</CardTitle>
+            <p className="text-gray-500 mt-2">Send us your questions or feedback.</p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                 <input
                   type="text"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Your name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input
                   type="email"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="you@example.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                <input
-                  type="text"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Message subject"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
                 <textarea
+                  required
                   rows={5}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Type your message..."
-                ></textarea>
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
-              <button
-                type="submit"
-                className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                Send Message
-              </button>
+              {tip && (
+                <p className={`text-sm font-medium ${tip.ok ? 'text-green-600' : 'text-red-600'}`}>
+                  {tip.text}
+                </p>
+              )}
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Sending...' : 'Send Message'}
+              </Button>
             </form>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Contact Information</h2>
-            <p className="mb-4">Email: [Your Contact Email]</p>
-            <p className="mb-4">We typically reply within 2–3 business days.</p>
-            <div className="mt-6">
-              <h3 className="font-semibold mb-2">Common topics:</h3>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Tool feature requests</li>
-                <li>Technical issues</li>
-                <li>Advertising & partnership</li>
-                <li>Privacy related questions</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );
