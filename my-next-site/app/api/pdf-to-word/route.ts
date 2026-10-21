@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as pdfjsLib from 'pdfjs-dist';
+import pdf from 'pdf-parse';
 import { Document, Packer, Paragraph } from 'docx';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdfjs-dist/build/pdf.worker.mjs';
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,41 +10,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
-    const buf = Buffer.from(await file.arrayBuffer());
-    const arrayBuf = buf.buffer;
+    const arrBuf = await file.arrayBuffer();
+    const buf = Buffer.from(arrBuf);
 
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuf }).promise;
-    const numPages = pdf.numPages;
-    const paragraphs: Paragraph[] = [];
-    let hasImage = false;
-
-    outer: for (let i = 1; i <= numPages; i++) {
-      const page = await pdf.getPage(i);
-      const ops = await page.getOperatorList();
-      for (const op of ops.fnArray) {
-        if (op === pdfjsLib.OPS.paintImageXObject || op === pdfjsLib.OPS.paintImageMaskXObject) {
-          hasImage = true;
-          break outer;
-        }
-      }
-      if (hasImage) break;
-
-      const textContent = await page.getTextContent();
-      const text = textContent.items.map((it: any) => it.str).join(' ');
-      paragraphs.push(new Paragraph(text));
+    // 解析PDF，提取文本
+    const result = await pdf(buf);
+    // result.text 就是提取出来的文本，支持中文
+    const text = result.text.trim();
+    if (!text) {
+      return NextResponse.json({ error: "No text found in this PDF. It may be scanned image PDF." }, { status: 400 });
     }
 
-    if (hasImage) {
-      return NextResponse.json({
-        error: "This PDF contains images or embedded graphics. Basic version only supports pure text PDFs. Please use Premium."
-      }, { status: 400 });
-    }
+    // 按换行切割成段落
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    const paragraphs = lines.map(line => new Paragraph(line));
 
     const doc = new Document({
       sections: [{ children: paragraphs }]
     });
     const outBuf = await Packer.toBuffer(doc);
-    // ✅ Buffer → Uint8Array，解决TS类型报错
     const uint8 = new Uint8Array(outBuf);
 
     return new NextResponse(uint8, {
@@ -55,8 +37,11 @@ export async function POST(req: NextRequest) {
         'Content-Disposition': `attachment; filename="${ file.name.replace(/\.pdf$/i, '') }.docx"`
       }
     });
-  } catch (err) {
-    console.error(err);
+  } catch (err: any) {
+    console.error('pdf parse error:', err);
+    if (err?.message?.includes('encrypted')) {
+      return NextResponse.json({ error: "This PDF is password/permission encrypted, cannot extract text." }, { status: 400 });
+    }
     return NextResponse.json({ error: 'Convert failed, file may be encrypted or corrupted' }, { status: 500 });
   }
 }
