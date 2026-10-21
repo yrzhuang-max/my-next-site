@@ -3,6 +3,13 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { blogPosts } from '@/lib/post';
 
+// 关键新增：告诉Next构建时要预渲染哪几个slug
+export async function generateStaticParams() {
+  return blogPosts.map((post) => ({
+    slug: post.slug,
+  }));
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const post = blogPosts.find(p => p.slug === slug);
