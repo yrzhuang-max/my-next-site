@@ -5,7 +5,7 @@ import Button from '@/components/Button';
 import FileUpload from '@/components/FileUpload';
 import FAQAccordion from '@/components/FAQAccordion';
 
-// 广告组件，改成普通函数，不export default
+// 广告组件
 function AdUnit() {
   const [canShowAd, setCanShowAd] = useState(false);
   useEffect(() => {
@@ -28,11 +28,11 @@ function AdUnit() {
 const faqList = [
   {
     question: "Is PDF to Word conversion free?",
-    answer: "Yes, you can convert PDF to Word for free with basic limits. Large files may require longer processing time."
+    answer: "Yes, our Basic version is free for text-only PDFs. Premium features require a paid subscription."
   },
   {
     question: "Will my original formatting be preserved?",
-    answer: "Our tool attempts to retain text, tables and basic layout. Complex graphics or scanned image-only PDFs may have formatting changes after conversion."
+    answer: "Basic version keeps plain text layout. Premium version supports images, tables and complex layout retention."
   },
   {
     question: "Are my uploaded files secure?",
@@ -40,115 +40,208 @@ const faqList = [
   },
   {
     question: "What file size limits apply?",
-    answer: "Free conversion supports PDF files up to 25MB. For larger documents, split your PDF into smaller parts before uploading."
+    answer: "Both Basic and Premium support PDF files up to 25MB."
   },
   {
     question: "Can I convert scanned PDF files?",
-    answer: "Scanned PDFs are image-based and require OCR. Our current free converter works best with text-based PDFs."
+    answer: "Scanned image PDFs require OCR, which is only available in our Premium plan."
   }
 ];
 
-// ✅ 唯一的页面默认导出
 export default function PdfToWordPage() {
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [isConverting, setIsConverting] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // Basic Free 状态
+  const [basicFile, setBasicFile] = useState<File | null>(null);
+  const [basicConverting, setBasicConverting] = useState(false);
+  const [basicProgress, setBasicProgress] = useState(0);
+  const [BasicDownloadUrl, setBasicDownloadUrl] = useState<string | null>(null);
+  const [basicError, setBasicError] = useState<string | null>(null);
 
-  // 模拟转换，生产环境替换为真实API请求
-  const simulateConversion = async () => {
-    if (!pdfFile) return;
-    setIsConverting(true);
-    setProgress(0);
-    setDownloadUrl(null);
-    setError(null);
+  // Premium 状态
+  const [premiumFile, setPremiumFile] = useState<File | null>(null);
+  const [premiumConverting, setPremiumConverting] = useState(false);
+  const [premiumProgress, setPremiumProgress] = useState(0);
+  const [premiumDownloadUrl, setPremiumDownloadUrl] = useState<string | null>(null);
+  const [premiumError, setPremiumError] = useState<string | null>(null);
+
+  // 基础免费转换（文字PDF only）
+  const runBasicConvert = async () => {
+    if (!basicFile) return;
+    setBasicConverting(true);
+    setBasicProgress(0);
+    setBasicDownloadUrl(null);
+    setBasicError(null);
     try {
-      // 模拟进度递增
       for (let i = 0; i <= 100; i += 10) {
         await new Promise(resolve => setTimeout(resolve, 250));
-        setProgress(i);
+        setBasicProgress(i);
       }
-      // 生成模拟下载链接
-      const fakeBlob = new Blob(["Mock Word content"], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
-      const url = URL.createObjectURL(fakeBlob);
-      setDownloadUrl(url);
+      const blob = new Blob(["Mock Basic plain text Word document"], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+      const url = URL.createObjectURL(blob);
+      setBasicDownloadUrl(url);
     } catch (err) {
-      setError("Conversion failed. Please try again or upload another PDF file.");
+      setBasicError("Conversion failed. Please try again or upload another PDF file.");
     } finally {
-      setIsConverting(false);
+      setBasicConverting(false);
     }
   };
 
-  const handleDownload = () => {
-    if (!downloadUrl || !pdfFile) return;
+  // 高级版转换占位（后续付费鉴权、OCR、图片表格解析）
+  const runPremiumConvert = async () => {
+    if (!premiumFile) return;
+    setPremiumConverting(true);
+    setPremiumProgress(0);
+    setPremiumDownloadUrl(null);
+    setPremiumError(null);
+    try {
+      for (let i = 0; i <= 100; i += 10) {
+        await new Promise(resolve => setTimeout(resolve, 250));
+        setPremiumProgress(i);
+      }
+      const blob = new Blob(["Mock Premium Word with images & tables"], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+      const url = URL.createObjectURL(blob);
+      setPremiumDownloadUrl(url);
+    } catch (err) {
+      setPremiumError("Conversion failed. Please try again or upload another PDF file.");
+    } finally {
+      setPremiumConverting(false);
+    }
+  };
+
+  const handleDownload = (url: string | null, file: File | null) => {
+    if (!url || !file) return;
     const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = `${pdfFile.name.replace(/\.pdf$/i, '')}.docx`;
+    a.href = url;
+    a.download = `${file.name.replace(/\.pdf$/i, '')}.docx`;
     document.body.appendChild(a);
     a.click();
     a.remove();
   };
 
-  const resetAll = () => {
-    setPdfFile(null);
-    setIsConverting(false);
-    setProgress(0);
-    setDownloadUrl(null);
-    setError(null);
+  const resetBasic = () => {
+    setBasicFile(null);
+    setBasicConverting(false);
+    setBasicProgress(0);
+    setBasicDownloadUrl(null);
+    setBasicError(null);
+  };
+  const resetPremium = () => {
+    setPremiumFile(null);
+    setPremiumConverting(false);
+    setPremiumProgress(0);
+    setPremiumDownloadUrl(null);
+    setPremiumError(null);
   };
 
   return (
     <main className="py-12 md:py-16">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>PDF to Word Converter</CardTitle>
-            <p className="text-gray-500 mt-2">Convert PDF files to editable DOCX documents online.</p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <FileUpload onFileSelect={setPdfFile} maxSizeMB={25} />
-              {/* 转换进度条 */}
-              {isConverting && (
-                <div className="space-y-2">
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div
-                      className="bg-blue-600 h-3 rounded-full transition-all duration-200"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                  <p className="text-sm text-gray-600">Processing: {progress}%</p>
-                </div>
-              )}
-              {/* 错误提示 */}
-              {error && (
-                <p className="text-red-600 text-sm font-medium">{error}</p>
-              )}
-              {/* 操作按钮组 */}
-              <div className="flex flex-wrap gap-3">
-                <Button onClick={simulateConversion} disabled={!pdfFile || isConverting}>
-                  Convert to Word
-                </Button>
-                {downloadUrl && (
-                  <Button variant="secondary" onClick={handleDownload}>
-                    Download DOCX
-                  </Button>
-                )}
-                {(downloadUrl || error) && (
-                  <Button variant="outline" onClick={resetAll}>
-                    New Conversion
-                  </Button>
-                )}
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-bold text-gray-900">PDF to Word Converter</h1>
+          <p className="text-gray-500 mt-2">Choose the version that fits your document needs</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Basic Free 卡片 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                Basic
+                <span className="text-sm font-normal bg-green-100 text-green-700 px-2 py-0.5 rounded">Free</span>
+              </CardTitle>
+              <div className="mt-2 text-sm text-gray-600 space-y-1">
+                <p>✅ Plain text PDF to DOCX</p>
+                <p>✅ Basic paragraph layout</p>
+                <p className="text-red-500">❌ No images, scanned PDFs or complex tables</p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <FileUpload onFileSelect={setBasicFile} maxSizeMB={25} />
+                {basicConverting && (
+                  <div className="space-y-2">
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div
+                        className="bg-blue-600 h-3 rounded-full transition-all duration-200"
+                        style={{ width: `${basicProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600">Processing: {basicProgress}%</p>
+                  </div>
+                )}
+                {basicError && (
+                  <p className="text-red-600 text-sm font-medium">{basicError}</p>
+                )}
+                <div className="flex flex-wrap gap-3">
+                  <Button onClick={runBasicConvert} disabled={!basicFile || basicConverting}>
+                    Convert to Word
+                  </Button>
+                  {BasicDownloadUrl && (
+                    <Button variant="secondary" onClick={() => handleDownload(BasicDownloadUrl, basicFile)}>
+                      Download DOCX
+                    </Button>
+                  )}
+                  {(BasicDownloadUrl || basicError) && (
+                    <Button variant="outline" onClick={resetBasic}>
+                      New Conversion
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* 广告位置，想展示就放这里 <AdUnit /> */}
+          {/* Premium 卡片 */}
+          <Card className="border-blue-400 bg-blue-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                Premium
+                <span className="text-sm font-normal bg-blue--600 text-blue-700 px-2 py-0.5 rounded">Paid</span>
+              </CardTitle>
+              <div className="mt-2 text-sm text-gray-600 space-y-1">
+                <p>✅ All Basic features</p>
+                <p>✅ Embedded images & complex tables</p>
+                <p>✅ OCR for scanned image PDFs</p>
+                <p>✅ Advanced layout reconstruction</p>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <FileUpload onFileSelect={setPremiumFile} maxSizeMB={25} />
+                {premiumConverting && (
+                  <div className="space-y-2">
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div
+                        className="bg-blue-600 h-3 rounded-full transition-all duration-200"
+                        style={{ width: `${premiumProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600">Processing: {premiumProgress}%</p>
+                  </div>
+                )}
+                {premiumError && (
+                  <p className="text-red-600 text-sm font-medium">{premiumError}</p>
+                )}
+                <div className="flex flex-wrap gap-3">
+                  <Button onClick={runPremiumConvert} disabled={!premiumFile || premiumConverting}>
+                    Convert to Word
+                  </Button>
+                  {premiumDownloadUrl && (
+                    <Button variant="secondary" onClick={() => handleDownload(premiumDownloadUrl, premiumFile)}>
+                      Download DOCX
+                    </Button>
+                  )}
+                  {(premiumDownloadUrl || premiumError) && (
+                    <Button variant="outline" onClick={resetPremium}>
+                      New Conversion
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* <AdUnit /> */}
-
-        {/* FAQ Section */}
         <div className="mt-14">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Frequently Asked Questions</h2>
           <FAQAccordion items={faqList}/>
