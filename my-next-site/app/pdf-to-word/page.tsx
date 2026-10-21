@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/Card';
 import Button from '@/components/Button';
 import FileUpload from '@/components/FileUpload';
@@ -27,14 +28,17 @@ export default function PdfToWordPage() {
   const [error, setError] = useState('');
   const [warnMsg, setWarnMsg] = useState('');
   const [isOverFreeLimit, setIsOverFreeLimit] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
 
   const FREE_MAX_MB = 10;
+  const apiUrl = "https://pdf-extract-service-basic.onrender.com";
 
   const handleFileSelect = (selectedFile: File | null) => {
     setError('');
     setWarnMsg('');
     setResultText('');
     setIsOverFreeLimit(false);
+    setRejectReason('');
     setFile(selectedFile);
 
     if (!selectedFile) return;
@@ -46,55 +50,90 @@ export default function PdfToWordPage() {
   };
 
   const handleConvert = async () => {
-  if (!file) {
-    setError('Please select a PDF file first.');
-    return;
-  }
-  if (isOverFreeLimit) return;
-
-  setLoading(true);
-  setError('');
-  setWarnMsg('');
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
-    const apiUrl = "https://pdf-extract-service-basic.onrender.com";
-    const targetUrl = `${apiUrl}/extract-text`;
-    console.log('request url:', targetUrl);
-    console.log('file name:', file.name, 'size:', file.size);
-
-    const res = await fetch(targetUrl, {
-      method: 'POST',
-      body: formData
-    });
-    console.log('response status:', res.status);
-
-    // 只读取一次 body
-    const data = await res.json().catch(() => ({ detail: 'no message' }));
-
-    if (!res.ok) {
-      throw new Error(`Status ${res.status}, detail: ${data.detail ?? 'no message'}`);
+    if (!file) {
+      setError('Please select a PDF file first.');
+      return;
     }
-    setResultText(data.text || '');
+    if (isOverFreeLimit) return;
 
-    if (data.type === 'image-only') {
-      setWarnMsg('⚠️ This PDF contains only scanned images. Free plan cannot convert image-only PDFs, upgrade to Premium for OCR.');
-    } else if (data.type === 'mixed') {
-      setWarnMsg('⚠️ This PDF contains image areas. Image parts cannot be recognized, only existing text is extracted.');
-    } else {
-      setWarnMsg('ℹ️ Text extraction supports most languages, but correct rendering depends on the original PDF font and encoding. Complex mixed-layout documents such as contracts mixing English, Chinese and Arabic are not supported on the free plan. Right-to-left scripts may have order/layout issues.');
-    }
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      setError(err.message);
-    } else {
-      setError('Conversion failed, please try again.');
-    }
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    setError('');
+    setWarnMsg('');
+    setRejectReason('');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const targetUrl = `${apiUrl}/extract-text`;
+      console.log('request url:', targetUrl);
+      console.log('file name:', file.name, 'size:', file.size);
 
+      const res = await fetch(targetUrl, {
+        method: 'POST',
+        body: formData
+      });
+      console.log('response status:', res.status);
+
+      const data = await res.json().catch(() => ({ detail: 'no message' }));
+
+      if (!res.ok) {
+        throw new Error(`Status ${res.status}, detail: ${data.detail ?? 'no message'}`);
+      }
+
+      if (data.type === 'image-only') {
+        setRejectReason('⚠️ This PDF contains only scanned images. Free plan cannot convert image-only PDFs, upgrade to Premium for OCR.');
+        setError('Document rejected');
+        return;
+      }
+      if (data.type === 'mixed') {
+        setRejectReason('ℹ️ Text extraction supports most languages, but correct rendering depends on the original PDF font and encoding. Complex mixed-layout documents such as contracts mixing English, Chinese and Arabic are not supported on the free plan. Right-to-left scripts may have order/layout issues.');
+        setError('Document rejected');
+        return;
+      }
+
+      setResultText(data.text || '');
+      setWarnMsg('✅ Text extracted successfully.');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Conversion failed, please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownloadDocx = async () => {
+    if (!resultText) return;
+    try {
+      const doc = new Document({
+        sections: [
+          {
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: resultText,
+                  }),
+                ],
+              }),
+            ],
+          },
+        ],
+      });
+      const blob = await Packer.toBlob(doc);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'extracted.docx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setError('Failed to generate DOCX file');
+    }
+  };
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-10">
@@ -146,11 +185,12 @@ export default function PdfToWordPage() {
           )}
 
           {error && <p className="text-red-600 text-sm">{error}</p>}
-          {warnMsg && <p className="text-amber-600 text-sm">{warnMsg}</p>}
+          {rejectReason && <p className=" text-amber-600 text-sm">{rejectReason}</p>}
+          {warnMsg && <p className=" text-green-600 text-sm">{warnMsg}</p>}
 
-          {isOverFreeLimit ? (
+          {isOverFreeLimit || !!rejectReason ? (
             <p className="text-blue-600 font-medium">
-              Upgrade to Premium to process this large document.
+              Upgrade to Premium to process this document.
             </p>
           ) : (
             <Button onClick={handleConvert} disabled={loading}>
@@ -167,7 +207,7 @@ export default function PdfToWordPage() {
                 className="w-full h-72 border p-3 rounded-md resize-y"
               />
               <div className="mt-3">
-                <Button variant="outline">Download DOCX</Button>
+                <Button variant="outline" onClick={handleDownloadDocx}>Download DOCX</Button>
               </div>
             </div>
           )}
