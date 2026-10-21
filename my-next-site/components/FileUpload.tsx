@@ -69,13 +69,17 @@ export default function FileUpload({
     if (file) handleFile(file);
   };
 
+  // ✅ 点击按钮，手动唤起文件框
+  const openFilePicker = () => {
+    inputRef.current?.click();
+  };
+
   // 清除已选文件
   const clearFile = () => {
     setSelectedFile(null);
     setStatus('idle');
     setErrorMsg('');
     onFileSelect(null);
-    // ✅ 重置 input value，解决重复选择同一个文件不触发 onChange
     if (inputRef.current) {
       inputRef.current.value = '';
     }
@@ -98,8 +102,7 @@ export default function FileUpload({
           type="file"
           accept={accept}
           onChange={handleInputChange}
-          id="pdf-upload-input"
-          className="hidden"
+          className="opacity-0 absolute w-0 h-0 pointer-events-none"
         />
         {status === 'idle' || status === 'dragging' ? (
           <div className="space-y-3">
@@ -108,9 +111,8 @@ export default function FileUpload({
             </svg>
             <p className="text-gray-700 font-medium">Drag & drop your PDF here</p>
             <p className="text-sm text-gray-500">or</p>
-            <label htmlFor="pdf-upload-input">
-              <Button>Select PDF File</Button>
-            </label>
+            {/* 去掉 label，改用 onClick 触发 */}
+            <Button onClick={openFilePicker}>Select PDF File</Button>
             <p className="text-xs text-gray-500">Max file size: {maxSizeMB} MB</p>
           </div>
         ) : null}
@@ -131,9 +133,7 @@ export default function FileUpload({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <p className="text-red-600 font-medium">{errorMsg}</p>
-            <label htmlFor="pdf-upload-input">
-              <Button variant="outline">Try another file</Button>
-            </label>
+            <Button variant="outline" onClick={openFilePicker}>Try another file</Button>
           </div>
         )}
       </div>
