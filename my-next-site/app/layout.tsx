@@ -4,6 +4,7 @@ import Script from 'next/script';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CookieBanner from '@/components/CookieBanner';
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata: Metadata = {
   title: {
@@ -28,6 +29,9 @@ export default function RootLayout({
         </div>
         <Footer />
         <CookieBanner />
+
+        {/* Vercel Web Analytics，无Cookie，直接启用，不需要用户授权 */}
+        <Analytics />
 
         {/* GA4 脚本，延迟加载，等用户同意cookie才执行 */}
         <Script
