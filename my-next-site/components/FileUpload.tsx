@@ -1,25 +1,21 @@
 'use client';
-
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import Button from './Button';
-
 type UploadStatus = 'idle' | 'dragging' | 'selected' | 'error';
-
 interface FileUploadProps {
   maxSizeMB?: number;
   accept?: string;
   onFileSelect: (file: File | null) => void;
 }
-
 export default function FileUpload({
   maxSizeMB = 25,
   accept = 'application/pdf',
   onFileSelect,
 }: FileUploadProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>('');
-
   const maxBytes = maxSizeMB * 1024 * 1024;
 
   // 校验文件
@@ -79,6 +75,10 @@ export default function FileUpload({
     setStatus('idle');
     setErrorMsg('');
     onFileSelect(null);
+    // ✅ 重置 input value，解决重复选择同一个文件不触发 onChange
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
   };
 
   return (
@@ -94,13 +94,13 @@ export default function FileUpload({
         `}
       >
         <input
+          ref={inputRef}
           type="file"
           accept={accept}
           onChange={handleInputChange}
           id="pdf-upload-input"
           className="hidden"
         />
-
         {status === 'idle' || status === 'dragging' ? (
           <div className="space-y-3">
             <svg className="w-12 h-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -114,7 +114,6 @@ export default function FileUpload({
             <p className="text-xs text-gray-500">Max file size: {maxSizeMB} MB</p>
           </div>
         ) : null}
-
         {status === 'selected' && selectedFile && (
           <div className="space-y-3">
             <svg className="w-12 h-12 mx-auto text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,7 +125,6 @@ export default function FileUpload({
             <Button variant="outline" onClick={clearFile}>Remove file</Button>
           </div>
         )}
-
         {status === 'error' && (
           <div className="space-y-3">
             <svg className="w-12 h-12 mx-auto text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
