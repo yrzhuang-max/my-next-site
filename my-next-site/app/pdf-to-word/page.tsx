@@ -7,12 +7,6 @@ import FAQAccordion from '@/components/FAQAccordion';
 import * as pdfjsLib from 'pdfjs-dist';
 import { Document, Packer, Paragraph } from 'docx';
 
-// 配置 pdfjs worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url
-).toString();
-
 // 广告组件
 function AdUnit() {
   const [canShowAd, setCanShowAd] = useState(false);
@@ -63,7 +57,6 @@ export default function PdfToWordPage() {
   const [basicProgress, setBasicProgress] = useState(0);
   const [basicDownloadUrl, setBasicDownloadUrl] = useState<string | null>(null);
   const [basicError, setBasicError] = useState<string | null>(null);
-  const [hasUnsupportedContent, setHasUnsupportedContent] = useState(false);
 
   // Premium 状态
   const [premiumFile, setPremiumFile] = useState<File | null>(null);
@@ -71,6 +64,11 @@ export default function PdfToWordPage() {
   const [premiumProgress, setPremiumProgress] = useState(0);
   const [premiumDownloadUrl, setPremiumDownloadUrl] = useState<string | null>(null);
   const [premiumError, setPremiumError] = useState<string | null>(null);
+
+  // 挂载后设置 CDN worker，避免服务端执行
+  useEffect(() => {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs';
+  }, []);
 
   // PDF检测：判断是否包含图片（基础版使用）
   const scanPdfForImages = useCallback(async (file: File): Promise<boolean> => {
@@ -80,10 +78,8 @@ export default function PdfToWordPage() {
     for (let pageIdx = 1; pageIdx <= numPages; pageIdx++) {
       const page = await pdf.getPage(pageIdx);
       const ops = await page.getOperatorList();
-      // 判断页面是否存在图片渲染指令
       for (let i = 0; i < ops.fnArray.length; i++) {
         const fn = ops.fnArray[i];
-        // pdfjs 图片相关操作码
         if (fn === pdfjsLib.OPS.paintImageXObject || fn === pdfjsLib.OPS.paintImageMaskXObject) {
           return true;
         }
@@ -99,19 +95,15 @@ export default function PdfToWordPage() {
     setBasicProgress(0);
     setBasicDownloadUrl(null);
     setBasicError(null);
-    setHasUnsupportedContent(false);
     try {
-      // 先扫描PDF图片
       setBasicProgress(10);
       const foundImage = await scanPdfForImages(basicFile);
       if (foundImage) {
-        setHasUnsupportedContent(true);
         setBasicError("This PDF contains images or embedded graphics. Basic version only supports pure text PDFs. Please use Premium.");
         return;
       }
       setBasicProgress(25);
 
-      // 提取全部文本
       const arrayBuffer = await basicFile.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       const numPages = pdf.numPages;
@@ -125,7 +117,6 @@ export default function PdfToWordPage() {
       }
       setBasicProgress(90);
 
-      // 构建合法docx
       const doc = new Document({ sections: [{ children: paragraphs }] });
       const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
@@ -151,7 +142,6 @@ export default function PdfToWordPage() {
         await new Promise(resolve => setTimeout(resolve, 200));
         setPremiumProgress(i);
       }
-      // premium 暂时模拟合法docx，后续替换真实OCR逻辑
       const doc = new Document({ sections: [{ children: [new Paragraph("Premium conversion result placeholder")] }] });
       const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
@@ -179,7 +169,6 @@ export default function PdfToWordPage() {
     setBasicProgress(0);
     setBasicDownloadUrl(null);
     setBasicError(null);
-    setHasUnsupportedContent(false);
   };
   const resetPremium = () => {
     setPremiumFile(null);
