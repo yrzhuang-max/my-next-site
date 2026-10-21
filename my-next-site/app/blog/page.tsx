@@ -1,6 +1,7 @@
 import { blogPosts } from '@/lib/post';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/Card';
 import Button from '@/components/Button';
+import Link from 'next/link';
 
 export const metadata = {
   title: "Blog | FileDocSwift",
@@ -25,12 +26,12 @@ export default function BlogListPage() {
                 <p className="text-sm text-gray-500 mb-2">{post.date}</p>
                 <CardTitle className="text-xl">{post.title}</CardTitle>
               </CardHeader>
-              <CardContent>
+             <CardContent>
                 <p className="text-gray-600 mb-6">{post.excerpt}</p>
-                <a href={`/blog/${post.slug}/`}>
-                  <Button variant="outline">Read More</Button>
-                </a>
-              </CardContent>
+                <Link href={`/blog/${post.slug}`}>
+                <Button variant="outline">Read More</Button>
+                </Link>
+            </CardContent>
             </Card>
           ))}
         </div>
