@@ -1,9 +1,17 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/Card';
 import Button from '@/components/Button';
 import FileUpload from '@/components/FileUpload';
 import FAQAccordion from '@/components/FAQAccordion';
+import * as pdfjsLib from 'pdfjs-dist';
+import { Document, Packer, Paragraph } from 'docx';
+
+// 配置 pdfjs worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url
+).toString();
 
 // 广告组件
 function AdUnit() {
@@ -53,8 +61,9 @@ export default function PdfToWordPage() {
   const [basicFile, setBasicFile] = useState<File | null>(null);
   const [basicConverting, setBasicConverting] = useState(false);
   const [basicProgress, setBasicProgress] = useState(0);
-  const [BasicDownloadUrl, setBasicDownloadUrl] = useState<string | null>(null);
+  const [basicDownloadUrl, setBasicDownloadUrl] = useState<string | null>(null);
   const [basicError, setBasicError] = useState<string | null>(null);
+  const [hasUnsupportedContent, setHasUnsupportedContent] = useState(false);
 
   // Premium 状态
   const [premiumFile, setPremiumFile] = useState<File | null>(null);
@@ -63,29 +72,74 @@ export default function PdfToWordPage() {
   const [premiumDownloadUrl, setPremiumDownloadUrl] = useState<string | null>(null);
   const [premiumError, setPremiumError] = useState<string | null>(null);
 
-  // 基础免费转换（文字PDF only）
+  // PDF检测：判断是否包含图片（基础版使用）
+  const scanPdfForImages = useCallback(async (file: File): Promise<boolean> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const numPages = pdf.numPages;
+    for (let pageIdx = 1; pageIdx <= numPages; pageIdx++) {
+      const page = await pdf.getPage(pageIdx);
+      const ops = await page.getOperatorList();
+      // 判断页面是否存在图片渲染指令
+      for (let i = 0; i < ops.fnArray.length; i++) {
+        const fn = ops.fnArray[i];
+        // pdfjs 图片相关操作码
+        if (fn === pdfjsLib.OPS.paintImageXObject || fn === pdfjsLib.OPS.paintImageMaskXObject) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }, []);
+
+  // 基础版转换：提取文本，生成标准docx
   const runBasicConvert = async () => {
     if (!basicFile) return;
     setBasicConverting(true);
     setBasicProgress(0);
     setBasicDownloadUrl(null);
     setBasicError(null);
+    setHasUnsupportedContent(false);
     try {
-      for (let i = 0; i <= 100; i += 10) {
-        await new Promise(resolve => setTimeout(resolve, 250));
-        setBasicProgress(i);
+      // 先扫描PDF图片
+      setBasicProgress(10);
+      const foundImage = await scanPdfForImages(basicFile);
+      if (foundImage) {
+        setHasUnsupportedContent(true);
+        setBasicError("This PDF contains images or embedded graphics. Basic version only supports pure text PDFs. Please use Premium.");
+        return;
       }
-      const blob = new Blob(["Mock Basic plain text Word document"], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+      setBasicProgress(25);
+
+      // 提取全部文本
+      const arrayBuffer = await basicFile.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const numPages = pdf.numPages;
+      const paragraphs: Paragraph[] = [];
+      for (let i = 1; i <= numPages; i++) {
+        setBasicProgress(25 + ((i / numPages) * 60));
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((it: any) => it.str).join(' ');
+        paragraphs.push(new Paragraph(pageText));
+      }
+      setBasicProgress(90);
+
+      // 构建合法docx
+      const doc = new Document({ sections: [{ children: paragraphs }] });
+      const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
       setBasicDownloadUrl(url);
+      setBasicProgress(100);
     } catch (err) {
-      setBasicError("Conversion failed. Please try again or upload another PDF file.");
+      console.error(err);
+      setBasicError("PDF parse failed. This file may be encrypted or corrupted.");
     } finally {
       setBasicConverting(false);
     }
   };
 
-  // 高级版转换占位（后续付费鉴权、OCR、图片表格解析）
+  // 高级版占位
   const runPremiumConvert = async () => {
     if (!premiumFile) return;
     setPremiumConverting(true);
@@ -94,10 +148,12 @@ export default function PdfToWordPage() {
     setPremiumError(null);
     try {
       for (let i = 0; i <= 100; i += 10) {
-        await new Promise(resolve => setTimeout(resolve, 250));
+        await new Promise(resolve => setTimeout(resolve, 200));
         setPremiumProgress(i);
       }
-      const blob = new Blob(["Mock Premium Word with images & tables"], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+      // premium 暂时模拟合法docx，后续替换真实OCR逻辑
+      const doc = new Document({ sections: [{ children: [new Paragraph("Premium conversion result placeholder")] }] });
+      const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
       setPremiumDownloadUrl(url);
     } catch (err) {
@@ -123,6 +179,7 @@ export default function PdfToWordPage() {
     setBasicProgress(0);
     setBasicDownloadUrl(null);
     setBasicError(null);
+    setHasUnsupportedContent(false);
   };
   const resetPremium = () => {
     setPremiumFile(null);
@@ -169,18 +226,20 @@ export default function PdfToWordPage() {
                   </div>
                 )}
                 {basicError && (
-                  <p className="text-red-600 text-sm font-medium">{basicError}</p>
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-red-600 text-sm font-medium">{basicError}</p>
+                  </div>
                 )}
                 <div className="flex flex-wrap gap-3">
                   <Button onClick={runBasicConvert} disabled={!basicFile || basicConverting}>
                     Convert to Word
                   </Button>
-                  {BasicDownloadUrl && (
-                    <Button variant="secondary" onClick={() => handleDownload(BasicDownloadUrl, basicFile)}>
+                  {basicDownloadUrl && (
+                    <Button variant="secondary" onClick={() => handleDownload(basicDownloadUrl, basicFile)}>
                       Download DOCX
                     </Button>
                   )}
-                  {(BasicDownloadUrl || basicError) && (
+                  {(basicDownloadUrl || basicError) && (
                     <Button variant="outline" onClick={resetBasic}>
                       New Conversion
                     </Button>
@@ -195,7 +254,7 @@ export default function PdfToWordPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 Premium
-                <span className="text-sm font-normal bg-blue--600 text-blue-700 px-2 py-0.5 rounded">Paid</span>
+                <span className="text-sm font-normal bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Paid</span>
               </CardTitle>
               <div className="mt-2 text-sm text-gray-600 space-y-1">
                 <p>✅ All Basic features</p>
