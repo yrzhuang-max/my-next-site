@@ -46,57 +46,55 @@ export default function PdfToWordPage() {
   };
 
   const handleConvert = async () => {
-    if (!file) {
-      setError('Please select a PDF file first.');
-      return;
+  if (!file) {
+    setError('Please select a PDF file first.');
+    return;
+  }
+  if (isOverFreeLimit) return;
+
+  setLoading(true);
+  setError('');
+  setWarnMsg('');
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const apiUrl = "https://pdf-extract-service-basic.onrender.com";
+    const targetUrl = `${apiUrl}/extract-text`;
+    console.log('request url:', targetUrl);
+    console.log('file name:', file.name, 'size:', file.size);
+
+    const res = await fetch(targetUrl, {
+      method: 'POST',
+      body: formData
+    });
+    console.log('response status:', res.status);
+
+    // 只读取一次 body
+    const data = await res.json().catch(() => ({ detail: 'no message' }));
+
+    if (!res.ok) {
+      throw new Error(`Status ${res.status}, detail: ${data.detail ?? 'no message'}`);
     }
-    if (isOverFreeLimit) return;
+    setResultText(data.text || '');
 
-    setLoading(true);
-    setError('');
-    setWarnMsg('');
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const apiUrl = "https://pdf-extract-service-basic.onrender.com";
-      const targetUrl = `${apiUrl}/extract-text`;
-      console.log('request url:', targetUrl);
-      console.log('file name:', file.name, 'size:', file.size);
-
-      const res = await fetch(targetUrl, {
-        method: 'POST',
-        body: formData
-      });
-      console.log('response status:', res.status);
-
-      let errInfo: { detail?: string } = {};
-      try {
-        errInfo = await res.json();
-      } catch {}
-
-      if (!res.ok) {
-        throw new Error(`Status ${res.status}, detail: ${errInfo.detail ?? 'no message'}`);
-      }
-      const json = await res.json();
-      setResultText(json.text || '');
-
-      if (json.type === 'image-only') {
-        setWarnMsg('⚠️ This PDF contains only scanned images. Free plan cannot convert image-only PDFs, upgrade to Premium for OCR.');
-      } else if (json.type === 'mixed') {
-        setWarnMsg('⚠️ This PDF contains image areas. Image parts cannot be recognized, only existing text is extracted.');
-      } else {
-        setWarnMsg('ℹ️ Text extraction supports most languages, but correct rendering depends on the original PDF font and encoding. Complex mixed-layout documents such as contracts mixing English, Chinese and Arabic are not supported on the free plan. Right-to-left scripts may have order/layout issues.');
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Conversion failed, please try again.');
-      }
-    } finally {
-      setLoading(false);
+    if (data.type === 'image-only') {
+      setWarnMsg('⚠️ This PDF contains only scanned images. Free plan cannot convert image-only PDFs, upgrade to Premium for OCR.');
+    } else if (data.type === 'mixed') {
+      setWarnMsg('⚠️ This PDF contains image areas. Image parts cannot be recognized, only existing text is extracted.');
+    } else {
+      setWarnMsg('ℹ️ Text extraction supports most languages, but correct rendering depends on the original PDF font and encoding. Complex mixed-layout documents such as contracts mixing English, Chinese and Arabic are not supported on the free plan. Right-to-left scripts may have order/layout issues.');
     }
-  };
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      setError(err.message);
+    } else {
+      setError('Conversion failed, please try again.');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-10">
