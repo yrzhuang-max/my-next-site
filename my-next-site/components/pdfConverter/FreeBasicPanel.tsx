@@ -117,12 +117,10 @@ export default function FreeBasicPanel() {
         <div className="text-sm text-gray-600 space-y-1">
           <p>✅ Max file size: 10 MB</p>
           <p>✅ Plain text PDF extraction only</p>
+          <p className="text-amber-600">⚠️ Text only, layout/alignment will not be preserved.</p>
           <p>❌ No scanned / image PDFs</p>
           <p>❌ No complex multi‑script mixed layout</p>
         </div>
-        <p className="text-sm text-amber-600 font-medium">
-          ⚠️ Free Basic: Text only, layout/alignment will not be preserved. Layout recovery available in Premium.
-        </p>
 
         <FileUpload onFileSelect={handleBasicFileSelect} accept=".pdf" maxSizeMB={FREE_MAX_MB} />
 
@@ -136,13 +134,15 @@ export default function FreeBasicPanel() {
         {basicRejectReason && <p className="text-amber-600 text-sm">{basicRejectReason}</p>}
         {basicWarnMsg && <p className="text-green-600 text-sm">{basicWarnMsg}</p>}
 
-        {basicOverLimit || !!basicRejectReason ? (
-          <p className="text-blue-600 font-medium text-sm">Upgrade to Premium to process this document.</p>
-        ) : (
-          <Button onClick={handleBasicConvert} disabled={basicLoading}>
-            {basicLoading ? 'Converting...' : 'Convert to Editable Text'}
-          </Button>
-        )}
+        <div className="pt-2">
+          {basicOverLimit || !!basicRejectReason ? (
+            <p className="text-blue-600 font-medium text-sm">Upgrade to Premium to process this document.</p>
+          ) : (
+            <Button onClick={handleBasicConvert} disabled={basicLoading} className="w-full">
+              {basicLoading ? 'Converting...' : 'Convert to Editable Text'}
+            </Button>
+          )}
+        </div>
 
         {basicResultText && (
           <div>
@@ -153,7 +153,7 @@ export default function FreeBasicPanel() {
               className="w-full h-64 border p-3 rounded-md resize-y text-sm"
             />
             <div className="mt-3">
-              <Button variant="outline" onClick={() => handleDownloadDocx(basicResultText)}>
+              <Button variant="outline" onClick={() => handleDownloadDocx(basicResultText)} className="w-full">
                 Download DOCX
               </Button>
             </div>

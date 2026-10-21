@@ -7,8 +7,6 @@ import FileUpload from '@/components/FileUpload';
 export default function PremiumPanel() {
   const [premiumFile, setPremiumFile] = useState<File | null>(null);
 
-  // ============ 后续高级版state、转换请求、下载全部写在这里 ============
-
   return (
     <Card className="border-blue-400">
       <CardHeader>
@@ -16,7 +14,7 @@ export default function PremiumPanel() {
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="text-sm text-gray-600 space-y-1">
-          <p>✅ Large file uploads</p>
+          <p>✅ Large file uploads (up to 50MB)</p>
           <p>✅ OCR for scanned / image PDFs</p>
           <p>✅ Complex multi‑script mixed layout support</p>
           <p>✅ Preserve original layout & alignment</p>
@@ -31,12 +29,9 @@ export default function PremiumPanel() {
           </p>
         )}
 
-        <div className="bg-blue-50 p-4 rounded-md">
-          <p className="text-blue-700 text-sm font-medium">Premium feature, unlock after subscription.</p>
-          <p className="text-blue-600 text-xs mt-1">Supports scanned PDFs, multi‑language documents and batch jobs.</p>
+        <div className="pt-2">
+          <Button disabled className="w-full">Convert to Editable Text</Button>
         </div>
-
-        <Button disabled>Convert to Editable Text</Button>
       </CardContent>
     </Card>
   );
