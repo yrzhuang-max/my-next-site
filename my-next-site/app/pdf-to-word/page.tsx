@@ -59,12 +59,23 @@ export default function PdfToWordPage() {
       const formData = new FormData();
       formData.append('file', file);
       const apiUrl = process.env.PDF_EXTRACT_API;
-      const res = await fetch(`${apiUrl}/extract-text`, {
+      const targetUrl = `${apiUrl}/extract-text`;
+      console.log('request url:', targetUrl);
+      console.log('file name:', file.name, 'size:', file.size);
+
+      const res = await fetch(targetUrl, {
         method: 'POST',
         body: formData
       });
+      console.log('response status:', res.status);
+
+      let errInfo: { detail?: string } = {};
+      try {
+        errInfo = await res.json();
+      } catch {}
+
       if (!res.ok) {
-        throw new Error('Conversion failed, please try again.');
+        throw new Error(`Status ${res.status}, detail: ${errInfo.detail ?? 'no message'}`);
       }
       const json = await res.json();
       setResultText(json.text || '');
@@ -80,7 +91,7 @@ export default function PdfToWordPage() {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('Something went wrong.');
+        setError('Conversion failed, please try again.');
       }
     } finally {
       setLoading(false);
@@ -131,7 +142,7 @@ export default function PdfToWordPage() {
             maxSizeMB={FREE_MAX_MB}
           />
           {file && (
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-gray-600">
               Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
             </p>
           )}
