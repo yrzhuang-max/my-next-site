@@ -1,6 +1,6 @@
 'use client';
 import { useState, useCallback, useRef } from 'react';
-import Button from './Button';
+import { Button } from './Button';
 type UploadStatus = 'idle' | 'dragging' | 'selected' | 'error';
 interface FileUploadProps {
   maxSizeMB?: number;
@@ -8,7 +8,7 @@ interface FileUploadProps {
   onFileSelect: (file: File | null) => void;
 }
 export default function FileUpload({
-  maxSizeMB = 10,
+  maxSizeMB = 25,
   accept = 'application/pdf',
   onFileSelect,
 }: FileUploadProps) {
@@ -18,10 +18,11 @@ export default function FileUpload({
   const [errorMsg, setErrorMsg] = useState<string>('');
   const maxBytes = maxSizeMB * 1024 * 1024;
 
-  // 校验文件
+  // ✅ 修改：改用后缀判断，不再判断 file.type
   const validateFile = useCallback((file: File): boolean => {
     setErrorMsg('');
-    if (file.type !== accept) {
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.pdf')) {
       setErrorMsg('Only PDF files are allowed.');
       return false;
     }
@@ -30,7 +31,7 @@ export default function FileUpload({
       return false;
     }
     return true;
-  }, [accept, maxBytes, maxSizeMB]);
+  }, [maxBytes, maxSizeMB]);
 
   const handleFile = useCallback((file: File) => {
     if (validateFile(file)) {
@@ -43,7 +44,6 @@ export default function FileUpload({
       onFileSelect(null);
     }
   }, [validateFile, onFileSelect]);
-
   // 拖拽事件
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -62,18 +62,15 @@ export default function FileUpload({
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) handleFile(droppedFile);
   };
-
   // input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) handleFile(file);
   };
-
   // ✅ 点击按钮，手动唤起文件框
   const openFilePicker = () => {
     inputRef.current?.click();
   };
-
   // 清除已选文件
   const clearFile = () => {
     setSelectedFile(null);
@@ -84,7 +81,6 @@ export default function FileUpload({
       inputRef.current.value = '';
     }
   };
-
   return (
     <div>
       <div
@@ -111,7 +107,6 @@ export default function FileUpload({
             </svg>
             <p className="text-gray-700 font-medium">Drag & drop your PDF here</p>
             <p className="text-sm text-gray-500">or</p>
-            {/* 去掉 label，改用 onClick 触发 */}
             <Button onClick={openFilePicker}>Select PDF File</Button>
             <p className="text-xs text-gray-500">Max file size: {maxSizeMB} MB</p>
           </div>
