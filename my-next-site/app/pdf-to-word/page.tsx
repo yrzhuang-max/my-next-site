@@ -22,50 +22,56 @@ const faqList = [
 ];
 
 export default function PdfToWordPage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [resultText, setResultText] = useState('');
-  const [error, setError] = useState('');
-  const [warnMsg, setWarnMsg] = useState('');
-  const [isOverFreeLimit, setIsOverFreeLimit] = useState(false);
-  const [rejectReason, setRejectReason] = useState('');
+  // ========== 免费基础版 state ==========
+  const [basicFile, setBasicFile] = useState<File | null>(null);
+  const [basicLoading, setBasicLoading] = useState(false);
+  const [basicResultText, setBasicResultText] = useState('');
+  const [basicError, setBasicError] = useState('');
+  const [basicWarnMsg, setBasicWarnMsg] = useState('');
+  const [basicOverLimit, setBasicOverLimit] = useState(false);
+  const [basicRejectReason, setBasicRejectReason] = useState('');
+
+  // ========== 高级版 state ==========
+  const [premiumFile, setPremiumFile] = useState<File | null>(null);
 
   const FREE_MAX_MB = 10;
   const apiUrl = "https://pdf-extract-service-basic.onrender.com";
 
-  const handleFileSelect = (selectedFile: File | null) => {
-    setError('');
-    setWarnMsg('');
-    setResultText('');
-    setIsOverFreeLimit(false);
-    setRejectReason('');
-    setFile(selectedFile);
+  // 基础版 文件选择
+  const handleBasicFileSelect = (selectedFile: File | null) => {
+    setBasicError('');
+    setBasicWarnMsg('');
+    setBasicResultText('');
+    setBasicOverLimit(false);
+    setBasicRejectReason('');
+    setBasicFile(selectedFile);
 
     if (!selectedFile) return;
     const fileMb = selectedFile.size / 1024 / 1024;
     if (fileMb > FREE_MAX_MB) {
-      setIsOverFreeLimit(true);
-      setError(`File is ${fileMb.toFixed(2)} MB, exceeding free ${FREE_MAX_MB}MB limit.`);
+      setBasicOverLimit(true);
+      setBasicError(`File is ${fileMb.toFixed(2)} MB, exceeding free ${FREE_MAX_MB}MB limit.`);
     }
   };
 
-  const handleConvert = async () => {
-    if (!file) {
-      setError('Please select a PDF file first.');
+  // 基础版 转换
+  const handleBasicConvert = async () => {
+    if (!basicFile) {
+      setBasicError('Please select a PDF file first.');
       return;
     }
-    if (isOverFreeLimit) return;
+    if (basicOverLimit) return;
 
-    setLoading(true);
-    setError('');
-    setWarnMsg('');
-    setRejectReason('');
+    setBasicLoading(true);
+    setBasicError('');
+    setBasicWarnMsg('');
+    setBasicRejectReason('');
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', basicFile);
       const targetUrl = `${apiUrl}/extract-text`;
       console.log('request url:', targetUrl);
-      console.log('file name:', file.name, 'size:', file.size);
+      console.log('file name:', basicFile.name, 'size:', basicFile.size);
 
       const res = await fetch(targetUrl, {
         method: 'POST',
@@ -80,31 +86,32 @@ export default function PdfToWordPage() {
       }
 
       if (data.type === 'image-only') {
-        setRejectReason('⚠️ This PDF contains only scanned images. Free plan cannot convert image-only PDFs, upgrade to Premium for OCR.');
-        setError('Document rejected');
+        setBasicRejectReason('⚠️ This PDF contains only scanned images. Free plan cannot convert image-only PDFs, upgrade to Premium for OCR.');
+        setBasicError('Document rejected');
         return;
       }
       if (data.type === 'mixed') {
-        setRejectReason('ℹ️ Text extraction supports most languages, but correct rendering depends on the original PDF font and encoding. Complex mixed-layout documents such as contracts mixing English, Chinese and Arabic are not supported on the free plan. Right-to-left scripts may have order/layout issues.');
-        setError('Document rejected');
+        setBasicRejectReason('ℹ️ Text extraction supports most languages, but correct rendering depends on the original PDF font and encoding. Complex mixed-layout documents such as contracts mixing English, Chinese and Arabic are not supported on the free plan. Right-to-left scripts may have order/layout issues.');
+        setBasicError('Document rejected');
         return;
       }
 
-      setResultText(data.text || '');
-      setWarnMsg('✅ Text extracted successfully.');
+      setBasicResultText(data.text || '');
+      setBasicWarnMsg('✅ Text extracted successfully.');
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message);
+        setBasicError(err.message);
       } else {
-        setError('Conversion failed, please try again.');
+        setBasicError('Conversion failed, please try again.');
       }
     } finally {
-      setLoading(false);
+      setBasicLoading(false);
     }
   };
 
-  const handleDownloadDocx = async () => {
-    if (!resultText) return;
+  // DOCX 下载
+  const handleDownloadDocx = async (text: string) => {
+    if (!text) return;
     try {
       const doc = new Document({
         sections: [
@@ -113,7 +120,7 @@ export default function PdfToWordPage() {
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: resultText,
+                    text,
                   }),
                 ],
               }),
@@ -131,88 +138,111 @@ export default function PdfToWordPage() {
       a.remove();
       URL.revokeObjectURL(url);
     } catch (e) {
-      setError('Failed to generate DOCX file');
+      setBasicError('Failed to generate DOCX file');
     }
   };
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-10">
+    <main className="max-w-5xl mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold text-center mb-2">PDF to Word Converter</h1>
-      <p className="text-gray-600 text-center mb-8">Extract text from PDF and export editable content</p>
+      <p className="text-gray-600 text-center mb-10">Extract text from PDF and export editable content</p>
 
-      <div className="grid md:grid-cols-2 gap-4 mb-8">
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* ========== 免费基础版 ========== */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Free Plan</CardTitle>
+            <CardTitle className="text-lg">Free Basic Plan</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-gray-700">
-            <p>✅ Max file size: 10 MB</p>
-            <p>✅ Basic text extraction</p>
-            <p>✅ Standard processing speed</p>
-            <p>❌ No batch conversion</p>
-            <p>❌ No OCR for scanned PDFs</p>
-            <p>❌ Complex multi-script mixed layout (Arabic + English + Chinese etc.)</p>
+          <CardContent className="space-y-5">
+            <div className="text-sm text-gray-600 space-y-1">
+              <p>✅ Max file size: 10 MB</p>
+              <p>✅ Plain text PDF extraction only</p>
+              <p>❌ No scanned / image PDFs</p>
+              <p>❌ No complex multi-script mixed layout</p>
+            </div>
+
+            <FileUpload
+              onFileSelect={handleBasicFileSelect}
+              accept=".pdf"
+              maxSizeMB={FREE_MAX_MB}
+            />
+
+            {basicFile && (
+              <p className="text-sm text-gray-600">
+                Selected: {basicFile.name} ({(basicFile.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
+            )}
+
+            {basicError && <p className="text-red-600 text-sm">{basicError}</p>}
+            {basicRejectReason && <p className="text-amber-600 text-sm">{basicRejectReason}</p>}
+            {basicWarnMsg && <p className="text-green-600 text-sm">{basicWarnMsg}</p>}
+
+            {basicOverLimit || !!basicRejectReason ? (
+              <p className="text-blue-600 font-medium text-sm">
+                Upgrade to Premium to process this document.
+              </p>
+            ) : (
+              <Button onClick={handleBasicConvert} disabled={basicLoading}>
+                {basicLoading ? 'Converting...' : 'Convert to Editable Text'}
+              </Button>
+            )}
+
+            {basicResultText && (
+              <div>
+                <h3 className="font-semibold text-sm mb-2">Extracted Content:</h3>
+                <textarea
+                  readOnly
+                  value={basicResultText}
+                  className="w-full h-64 border p-3 rounded-md resize-y text-sm"
+                />
+                <div className="mt-3">
+                  <Button variant="outline" onClick={() => handleDownloadDocx(basicResultText)}>
+                    Download DOCX
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
-        <Card>
+
+        {/* ========== Premium高级版（仅展示，不处理） ========== */}
+        <Card className="border-blue-400">
           <CardHeader>
             <CardTitle className="text-lg">Premium Plan</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-gray-700">
-            <p>✅ Large file uploads</p>
-            <p>✅ Batch conversion</p>
-            <p>✅ OCR for scanned / image PDFs</p>
-            <p>✅ Faster priority processing</p>
-            <p>✅ Advanced layout recovery & multi-script mixed documents</p>
+          <CardContent className="space-y-5">
+            <div className="text-sm text-gray--600 space-y-1">
+              <p>✅ Large file uploads</p>
+              <p>✅ OCR for scanned / image PDFs</p>
+              <p>✅ Complex multi-script mixed layout support</p>
+              <p>✅ Batch conversion & faster processing</p>
+            </div>
+
+            <FileUpload
+              onFileSelect={setPremiumFile}
+              accept=".pdf"
+              maxSizeMB={50}
+            />
+
+            {premiumFile && (
+              <p className="text-sm text-gray-600">
+                Selected: {premiumFile.name} ({(premiumFile.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
+            )}
+
+            <div className="bg-blue-50 p-4 rounded-md">
+              <p className="text-blue-700 text-sm font-medium">
+                Premium feature, unlock after subscription.
+              </p>
+              <p className="text-blue-600 text-xs mt-1">
+                Supports scanned PDFs, multi-language对照 documents and batch jobs.
+              </p>
+            </div>
+
+            <Button disabled>Convert to Editable Text</Button>
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload your PDF</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <FileUpload
-            onFileSelect={handleFileSelect}
-            accept=".pdf"
-            maxSizeMB={FREE_MAX_MB}
-          />
-          {file && (
-            <p className="text-sm text-gray-600">
-              Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-            </p>
-          )}
-
-          {error && <p className="text-red-600 text-sm">{error}</p>}
-          {rejectReason && <p className=" text-amber-600 text-sm">{rejectReason}</p>}
-          {warnMsg && <p className=" text-green-600 text-sm">{warnMsg}</p>}
-
-          {isOverFreeLimit || !!rejectReason ? (
-            <p className="text-blue-600 font-medium">
-              Upgrade to Premium to process this document.
-            </p>
-          ) : (
-            <Button onClick={handleConvert} disabled={loading}>
-              {loading ? 'Converting...' : 'Convert to Editable Text'}
-            </Button>
-          )}
-
-          {resultText && (
-            <div>
-              <h3 className="font-semibold mb-2">Extracted Content:</h3>
-              <textarea
-                readOnly
-                value={resultText}
-                className="w-full h-72 border p-3 rounded-md resize-y"
-              />
-              <div className="mt-3">
-                <Button variant="outline" onClick={handleDownloadDocx}>Download DOCX</Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       <div className="mt-12">
         <h2 className="text-xl font-semibold mb-4">FAQs</h2>
