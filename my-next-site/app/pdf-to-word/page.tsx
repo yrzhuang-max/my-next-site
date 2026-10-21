@@ -72,13 +72,16 @@ export default function PdfToWordPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Upload your PDF (Max 20MB)</CardTitle>
+          <CardTitle>Upload your PDF (Max 10MB for Free)</CardTitle>
+          <p className="text-sm text-gray-500 mt-1">
+            Upgrade to Premium for larger files, faster processing and batch conversion
+          </p>
         </CardHeader>
         <CardContent className="space-y-6">
           <FileUpload
             onFileSelect={handleFileSelect}
             accept=".pdf"
-            maxSizeMB={20}
+            maxSizeMB={10}
           />
           {file && <p className="text-sm text-gray-700">Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</p>}
 
@@ -100,6 +103,15 @@ export default function PdfToWordPage() {
           )}
         </CardContent>
       </Card>
+
+      <div className="mt-6 text-center">
+        <p className="text-gray-600 text-sm">
+          Need larger size and more features?{' '}
+          <span className="font-medium text-blue-600 cursor-pointer hover:underline">
+            View Premium Plan
+          </span>
+        </p>
+      </div>
 
       <div className="mt-12">
         <h2 className="text-xl font-semibold mb-4">FAQs</h2>
