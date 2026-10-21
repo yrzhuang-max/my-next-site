@@ -58,7 +58,7 @@ export default function PdfToWordPage() {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const apiUrl = process.env.PDF_EXTRACT_API;
+      const apiUrl = "https://pdf-extract-service-basic.onrender.com";
       const targetUrl = `${apiUrl}/extract-text`;
       console.log('request url:', targetUrl);
       console.log('file name:', file.name, 'size:', file.size);
