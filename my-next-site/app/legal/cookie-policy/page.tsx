@@ -56,7 +56,7 @@ export default function CookiePolicyPage() {
 
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Contact Us</h2>
-          <p>Cookie related inquiries: [Your Contact Email]</p>
+          <p>Cookie related inquiries: [<a href="mailto:contact@filedocswift.com">contact@filedocswift.com</a>]</p>
         </section>
       </div>
     </main>

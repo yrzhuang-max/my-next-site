@@ -66,7 +66,7 @@ export default function TermsOfServicePage() {
 
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-3">9. Contact</h2>
-          <p>Questions regarding these Terms: [Your Contact Email]</p>
+          <p>Questions regarding these Terms:[<a href="mailto:contact@filedocswift.com">contact@filedocswift.com</a>]</p>
         </section>
       </div>
     </main>
