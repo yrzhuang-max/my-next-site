@@ -69,11 +69,12 @@ export default function PdfToWordPage() {
       const json = await res.json();
       setResultText(json.text || '');
 
-      // 后端返回 extraInfo 用来判断文档类型
       if (json.type === 'image-only') {
         setWarnMsg('⚠️ This PDF contains only scanned images. Free plan cannot convert image-only PDFs, upgrade to Premium for OCR.');
       } else if (json.type === 'mixed') {
         setWarnMsg('⚠️ This PDF contains image areas. Image parts cannot be recognized, only existing text is extracted.');
+      } else {
+        setWarnMsg('ℹ️ Text extraction supports most languages, but correct rendering depends on the original PDF font and encoding. Complex mixed-layout documents such as contracts mixing English, Chinese and Arabic are not supported on the free plan. Right-to-left scripts may have order/layout issues.');
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -102,6 +103,7 @@ export default function PdfToWordPage() {
             <p>✅ Standard processing speed</p>
             <p>❌ No batch conversion</p>
             <p>❌ No OCR for scanned PDFs</p>
+            <p>❌ Complex multi-script mixed layout (Arabic + English + Chinese etc.)</p>
           </CardContent>
         </Card>
         <Card>
@@ -113,7 +115,7 @@ export default function PdfToWordPage() {
             <p>✅ Batch conversion</p>
             <p>✅ OCR for scanned / image PDFs</p>
             <p>✅ Faster priority processing</p>
-            <p>✅ Advanced layout recovery</p>
+            <p>✅ Advanced layout recovery & multi-script mixed documents</p>
           </CardContent>
         </Card>
       </div>
@@ -135,7 +137,7 @@ export default function PdfToWordPage() {
           )}
 
           {error && <p className="text-red-600 text-sm">{error}</p>}
-          {warnMsg && <p className=" text-amber-600 text-sm">{warnMsg}</p>}
+          {warnMsg && <p className="text-amber-600 text-sm">{warnMsg}</p>}
 
           {isOverFreeLimit ? (
             <p className="text-blue-600 font-medium">
