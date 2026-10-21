@@ -29,7 +29,7 @@ export default function ContactPage() {
       } else {
         setTip({ text: data.message || '发送失败，请重试', ok: false });
       }
-    } catch () {
+    } catch (_err) {
       setTip({ text: '网络错误，请稍后再试', ok: false });
     } finally {
       setLoading(false);
