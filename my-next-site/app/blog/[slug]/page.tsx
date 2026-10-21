@@ -1,9 +1,11 @@
 import Button from '@/components/Button';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { blogPosts } from '@/lib/post';
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const post = blogPosts.find(p => p.slug === params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = blogPosts.find(p => p.slug === slug);
   if (!post) return {};
   return {
     title: `${post.title} | FileDocSwift`,
@@ -11,8 +13,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  const post = blogPosts.find(p => p.slug === params.slug);
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = blogPosts.find(p => p.slug === slug);
   if (!post) notFound();
 
   const jsonLd = {
@@ -35,7 +38,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
       />
       <main className="py-12 md:py-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <a href="/blog/" className="text-blue-600 hover:text-blue-700 mb-6 inline-block">← Back to Blog</a>
+          <Link href="/blog" className="text-blue-600 hover:text-blue-700 mb-6 inline-block">← Back to Blog</Link>
           <p className="text-sm text-gray-500 mb-3">{post.date}</p>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">{post.title}</h1>
           <div
@@ -43,9 +46,9 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
           <div className="mt-12 pt-8 border-t border-gray-200">
-            <a href="/pdf-to-word/">
+            <Link href="/pdf-to-word">
               <Button>Convert PDF to Word Now</Button>
-            </a>
+            </Link>
           </div>
         </div>
       </main>
