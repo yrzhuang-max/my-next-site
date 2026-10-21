@@ -4,8 +4,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/Card';
 import Button from '@/components/Button';
 import FileUpload from '@/components/FileUpload';
 import FAQAccordion from '@/components/FAQAccordion';
-import * as pdfjsLib from 'pdfjs-dist';
-import { Document, Packer, Paragraph } from 'docx';
 
 // 广告组件
 function AdUnit() {
@@ -65,13 +63,11 @@ export default function PdfToWordPage() {
   const [premiumDownloadUrl, setPremiumDownloadUrl] = useState<string | null>(null);
   const [premiumError, setPremiumError] = useState<string | null>(null);
 
-  // 挂载后设置 CDN worker，避免服务端执行
-  useEffect(() => {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs';
-  }, []);
-
   // PDF检测：判断是否包含图片（基础版使用）
   const scanPdfForImages = useCallback(async (file: File): Promise<boolean> => {
+    const pdfjsLib = await import('pdfjs-dist');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs';
+
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     const numPages = pdf.numPages;
@@ -104,10 +100,14 @@ export default function PdfToWordPage() {
       }
       setBasicProgress(25);
 
+      const pdfjsLib = await import('pdfjs-dist');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs';
+      const { Document, Packer, Paragraph } = await import('docx');
+
       const arrayBuffer = await basicFile.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       const numPages = pdf.numPages;
-      const paragraphs: Paragraph[] = [];
+      const paragraphs: InstanceType<typeof Paragraph>[] = [];
       for (let i = 1; i <= numPages; i++) {
         setBasicProgress(25 + ((i / numPages) * 60));
         const page = await pdf.getPage(i);
@@ -142,6 +142,7 @@ export default function PdfToWordPage() {
         await new Promise(resolve => setTimeout(resolve, 200));
         setPremiumProgress(i);
       }
+      const { Document, Packer, Paragraph } = await import('docx');
       const doc = new Document({ sections: [{ children: [new Paragraph("Premium conversion result placeholder")] }] });
       const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
