@@ -25,11 +25,24 @@ export default function PdfToWordPage() {
   const [loading, setLoading] = useState(false);
   const [resultText, setResultText] = useState('');
   const [error, setError] = useState('');
+  const [warnMsg, setWarnMsg] = useState('');
+  const [isOverFreeLimit, setIsOverFreeLimit] = useState(false);
+
+  const FREE_MAX_MB = 10;
 
   const handleFileSelect = (selectedFile: File | null) => {
     setError('');
+    setWarnMsg('');
     setResultText('');
+    setIsOverFreeLimit(false);
     setFile(selectedFile);
+
+    if (!selectedFile) return;
+    const fileMb = selectedFile.size / 1024 / 1024;
+    if (fileMb > FREE_MAX_MB) {
+      setIsOverFreeLimit(true);
+      setError(`File is ${fileMb.toFixed(2)} MB, exceeding free ${FREE_MAX_MB}MB limit.`);
+    }
   };
 
   const handleConvert = async () => {
@@ -37,23 +50,31 @@ export default function PdfToWordPage() {
       setError('Please select a PDF file first.');
       return;
     }
+    if (isOverFreeLimit) return;
+
     setLoading(true);
     setError('');
+    setWarnMsg('');
     try {
       const formData = new FormData();
       formData.append('file', file);
-
       const apiUrl = process.env.PDF_EXTRACT_API;
       const res = await fetch(`${apiUrl}/extract-text`, {
         method: 'POST',
         body: formData
       });
-
       if (!res.ok) {
         throw new Error('Conversion failed, please try again.');
       }
       const json = await res.json();
       setResultText(json.text || '');
+
+      // 后端返回 extraInfo 用来判断文档类型
+      if (json.type === 'image-only') {
+        setWarnMsg('⚠️ This PDF contains only scanned images. Free plan cannot convert image-only PDFs, upgrade to Premium for OCR.');
+      } else if (json.type === 'mixed') {
+        setWarnMsg('⚠️ This PDF contains image areas. Image parts cannot be recognized, only existing text is extracted.');
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -70,26 +91,61 @@ export default function PdfToWordPage() {
       <h1 className="text-3xl font-bold text-center mb-2">PDF to Word Converter</h1>
       <p className="text-gray-600 text-center mb-8">Extract text from PDF and export editable content</p>
 
+      <div className="grid md:grid-cols-2 gap-4 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Free Plan</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-gray-700">
+            <p>✅ Max file size: 10 MB</p>
+            <p>✅ Basic text extraction</p>
+            <p>✅ Standard processing speed</p>
+            <p>❌ No batch conversion</p>
+            <p>❌ No OCR for scanned PDFs</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Premium Plan</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-gray-700">
+            <p>✅ Large file uploads</p>
+            <p>✅ Batch conversion</p>
+            <p>✅ OCR for scanned / image PDFs</p>
+            <p>✅ Faster priority processing</p>
+            <p>✅ Advanced layout recovery</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>Upload your PDF (Max 10MB for Free)</CardTitle>
-          <p className="text-sm text-gray-500 mt-1">
-            Upgrade to Premium for larger files, faster processing and batch conversion
-          </p>
+          <CardTitle>Upload your PDF</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <FileUpload
             onFileSelect={handleFileSelect}
             accept=".pdf"
-            maxSizeMB={10}
+            maxSizeMB={FREE_MAX_MB}
           />
-          {file && <p className="text-sm text-gray-700">Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</p>}
+          {file && (
+            <p className="text-sm text-gray-700">
+              Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+            </p>
+          )}
 
           {error && <p className="text-red-600 text-sm">{error}</p>}
+          {warnMsg && <p className=" text-amber-600 text-sm">{warnMsg}</p>}
 
-          <Button onClick={handleConvert} disabled={loading}>
-            {loading ? 'Converting...' : 'Convert to Editable Text'}
-          </Button>
+          {isOverFreeLimit ? (
+            <p className="text-blue-600 font-medium">
+              Upgrade to Premium to process this large document.
+            </p>
+          ) : (
+            <Button onClick={handleConvert} disabled={loading}>
+              {loading ? 'Converting...' : 'Convert to Editable Text'}
+            </Button>
+          )}
 
           {resultText && (
             <div>
@@ -99,19 +155,13 @@ export default function PdfToWordPage() {
                 value={resultText}
                 className="w-full h-72 border p-3 rounded-md resize-y"
               />
+              <div className="mt-3">
+                <Button variant="outline">Download DOCX</Button>
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
-
-      <div className="mt-6 text-center">
-        <p className="text-gray-600 text-sm">
-          Need larger size and more features?{' '}
-          <span className="font-medium text-blue-600 cursor-pointer hover:underline">
-            View Premium Plan
-          </span>
-        </p>
-      </div>
 
       <div className="mt-12">
         <h2 className="text-xl font-semibold mb-4">FAQs</h2>
