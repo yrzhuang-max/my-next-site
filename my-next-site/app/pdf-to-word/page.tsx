@@ -1,8 +1,9 @@
 'use client';
-import { dynamic } from 'next/dynamic';
+import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import FAQAccordion from '@/components/FAQAccordion';
 
-// 懒加载，关闭SSR，彻底规避服务端解析 pdfjs-dist / docx
+// 懒加载，关闭SSR
 const PdfConverter = dynamic(() => import('@/components/PdfConverter'), {
   ssr: false,
   loading: () => <div className="p-10 text-center">Loading converter...</div>
