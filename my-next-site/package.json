@@ -10,9 +10,10 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@types/pdf-parse": "^1.1.5",
     "docx": "^9.13.0",
     "next": "16.4.2",
-    "pdfjs-dist": "^6.4.299",
+    "pdf-parse": "^2.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "resend": "^6.34.1"

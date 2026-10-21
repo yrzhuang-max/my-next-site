@@ -8,7 +8,7 @@ interface FileUploadProps {
   onFileSelect: (file: File | null) => void;
 }
 export default function FileUpload({
-  maxSizeMB = 25,
+  maxSizeMB = 10,
   accept = 'application/pdf',
   onFileSelect,
 }: FileUploadProps) {
