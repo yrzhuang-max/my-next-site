@@ -17,7 +17,7 @@ const faqList = [
   },
   {
     question: "Are my uploaded files secure?",
-    answer: "Files are processed temporarily and deleted after conversion. We do not store your PDFs permanently."
+    answer: "Files are processed temporarily and deleted after conversion. We do not store your uploaded PDFs permanently."
   }
 ];
 
@@ -79,10 +79,10 @@ export default function PdfToWordPage() {
       });
       console.log('response status:', res.status);
 
-      const data = await res.json().catch(() => ({ detail: 'no message' }));
+      const data = await res.json().catch(() => ({ detail: 'Server error' }));
 
       if (!res.ok) {
-        throw new Error(`Status ${res.status}, detail: ${data.detail ?? 'no message'}`);
+        throw new Error(`Status ${res.status}, detail: ${data.detail ?? 'unknown'}`);
       }
 
       if (data.type === 'image-only') {
@@ -91,12 +91,14 @@ export default function PdfToWordPage() {
         return;
       }
       if (data.type === 'mixed') {
-        setBasicRejectReason('ℹ️ Text extraction supports most languages, but correct rendering depends on the original PDF font and encoding. Complex mixed-layout documents such as contracts mixing English, Chinese and Arabic are not supported on the free plan. Right-to-left scripts may have order/layout issues.');
+        setBasicRejectReason('ℹ️ This document contains non-text pages. Complex mixed-layout documents are not supported on the free plan, upgrade to Premium.');
         setBasicError('Document rejected');
         return;
       }
 
-      setBasicResultText(data.text || '');
+      // 前端兜底清洗控制字符
+      const cleanText = (data.text || '').replace(/[\x00-\x08\x0b\x0c\x0e-\x1F]/g, '');
+      setBasicResultText(cleanText);
       setBasicWarnMsg('✅ Text extracted successfully.');
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -113,20 +115,17 @@ export default function PdfToWordPage() {
   const handleDownloadDocx = async (text: string) => {
     if (!text) return;
     try {
+      const paragraphs = text.split('\n')..map(line => {
+        return new Paragraph({
+          children: [new TextRun(line)]
+        });
+      });
       const doc = new Document({
         sections: [
           {
-            children: [
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text,
-                  }),
-                ],
-              }),
-            ],
-          },
-        ],
+            children: paragraphs
+          }
+        ]
       });
       const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
@@ -145,7 +144,7 @@ export default function PdfToWordPage() {
   return (
     <main className="max-w-5xl mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold text-center mb-2">PDF to Word Converter</h1>
-      <p className="text-gray-600 text-center mb-10">Extract text from PDF and export editable content</p>
+      <p className="text-gray-600 text-center mb-10">Extract text from PDF and export editable Word document</p>
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* ========== 免费基础版 ========== */}
@@ -160,11 +159,14 @@ export default function PdfToWordPage() {
               <p>❌ No scanned / image PDFs</p>
               <p>❌ No complex multi-script mixed layout</p>
             </div>
+            {/* 新增提示 */}
+            <p className="text-sm text-amber-600 font-medium">
+              ⚠️ Free Basic: Text only, layout/alignment will not be preserved. Layout recovery available in Premium.
+            </p>
 
             <FileUpload
               onFileSelect={handleBasicFileSelect}
               accept=".pdf"
-              maxSizeMB={FREE_MAX_MB}
             />
 
             {basicFile && (
@@ -211,7 +213,7 @@ export default function PdfToWordPage() {
             <CardTitle className="text-lg">Premium Plan</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="text-sm text-gray--600 space-y-1">
+            <div className="text-sm text-gray-600 space-y-1">
               <p>✅ Large file uploads</p>
               <p>✅ OCR for scanned / image PDFs</p>
               <p>✅ Complex multi-script mixed layout support</p>
@@ -221,7 +223,6 @@ export default function PdfToWordPage() {
             <FileUpload
               onFileSelect={setPremiumFile}
               accept=".pdf"
-              maxSizeMB={50}
             />
 
             {premiumFile && (
@@ -235,7 +236,7 @@ export default function PdfToWordPage() {
                 Premium feature, unlock after subscription.
               </p>
               <p className="text-blue-600 text-xs mt-1">
-                Supports scanned PDFs, multi-language对照 documents and batch jobs.
+                Supports scanned PDFs, multi-language documents and batch jobs.
               </p>
             </div>
 
