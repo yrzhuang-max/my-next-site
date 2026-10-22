@@ -116,8 +116,8 @@ export default function PdfToWordPage() {
 
 <section className="mt-16">
   <h2 className="text-2xl font-semibold text-gray-800 mb-6">Frequently Asked Questions</h2>
-  {/* 给爬虫读取，sr-only，谷歌合规 */}
-  <div className="sr-only">
+  {/* 替换这里 */}
+  <div className="absolute size-0 overflow-hidden whitespace-nowrap">
     {faqList.map((item) => (
       <div key={item.question}>
         <p>{item.question}</p>
@@ -125,7 +125,7 @@ export default function PdfToWordPage() {
       </div>
     ))}
   </div>
-  {/* 原有折叠交互面板，保持不变 */}
+  {/* 原有折叠面板不动 */}
   <FAQAccordion items={faqList} />
 </section>
 
