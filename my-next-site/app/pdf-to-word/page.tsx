@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import FreeBasicPanel from '@/components/pdfConverter/FreeBasicPanel';
 import PremiumPanel from '@/components/pdfConverter/PremiumPanel';
 import FAQAccordion from '@/components/FAQAccordion';
@@ -39,6 +38,43 @@ const faqList = [
       'Files are processed temporarily and deleted after conversion. We do not permanently store your uploaded PDFs.',
   },
 ];
+
+const howToJson = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'How to convert PDF to DOCX for free',
+  description: 'Convert native text PDF to editable Word DOCX online for free',
+  step: [
+    {
+      '@type': 'HowToStep',
+      name: 'Upload your PDF',
+      text: 'Upload a native text PDF, maximum 10MB for free conversion.',
+    },
+    {
+      '@type': 'HowToStep',
+      name: 'Start conversion',
+      text: 'The server extracts content and builds an editable DOCX document.',
+    },
+    {
+      '@type': 'HowToStep',
+      name: 'Download DOCX',
+      text: 'Download your Word file, uploaded files are deleted after processing.',
+    },
+  ],
+};
+
+const faqJson = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqList.map((q) => ({
+    '@type': 'Question',
+    name: q.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: q.answer,
+    },
+  })),
+};
 
 export default function PdfToWordPage() {
   return (
@@ -83,53 +119,14 @@ export default function PdfToWordPage() {
         <FAQAccordion items={faqList} />
       </section>
 
-      {/* JSON-LD Schema */}
-      <Script
-        id="pdf-convert-howto-schema"
+      {/* 原生script，服务端直接渲染进HTML，不要 import Script */}
+      <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'HowTo',
-            name: 'How to convert PDF to DOCX for free',
-            description: 'Convert native text PDF to editable Word DOCX online for free',
-            step: [
-              {
-                '@type': 'HowToStep',
-                name: 'Upload your PDF',
-                text: 'Upload a native text PDF, maximum 10MB for free conversion.',
-              },
-              {
-                '@type': 'HowToStep',
-                name: 'Start conversion',
-                text: 'The server extracts content and builds an editable DOCX document.',
-              },
-              {
-                '@type': 'HowToStep',
-                name: 'Download DOCX',
-                text: 'Download your Word file, uploaded files are deleted after processing.',
-              },
-            ],
-          }),
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJson) }}
       />
-      <Script
-        id="pdf-convert-faq-schema"
+      <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'FAQPage',
-            mainEntity: faqList.map((q) => ({
-              '@type': 'Question',
-              name: q.question,
-              acceptedAnswer: {
-                '@type': 'Answer',
-                text: q.answer,
-              },
-            })),
-          }),
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJson) }}
       />
     </main>
   );
