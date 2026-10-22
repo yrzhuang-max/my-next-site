@@ -2,6 +2,7 @@ import Button from '@/components/Button';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { blogPosts } from '@/lib/post';
+import type { Metadata } from 'next';
 
 // 关键新增：告诉Next构建时要预渲染哪几个slug
 export async function generateStaticParams() {
@@ -10,13 +11,16 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const post = blogPosts.find(p => p.slug === slug);
   if (!post) return {};
   return {
-    title: `${post.title} | FileDocSwift`,
+    title: post.title,
     description: post.excerpt,
+    alternates: {
+      canonical: `/blog/${slug}`,
+    },
   };
 }
 
@@ -24,19 +28,18 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const { slug } = await params;
   const post = blogPosts.find(p => p.slug === slug);
   if (!post) notFound();
-
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
     description: post.excerpt,
     datePublished: post.isoDate,
+    dateModified: post.isoDate,
     publisher: {
       "@type": "Organization",
       name: "FileDocSwift",
     },
   };
-
   return (
     <>
       <script

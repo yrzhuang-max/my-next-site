@@ -13,6 +13,19 @@ export const metadata: Metadata = {
   },
   description: 'Free online PDF to Word converter. Convert PDF to editable DOCX quickly, no registration required.',
   metadataBase: new URL('https://www.filedocswift.com'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'FileDocSwift',
+    url: 'https://www.filedocswift.com',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -29,10 +42,8 @@ export default function RootLayout({
         </div>
         <Footer />
         <CookieBanner />
-
         {/* Vercel Web Analytics，无Cookie，直接启用，不需要用户授权 */}
         <Analytics />
-
         {/* GA4 脚本，延迟加载，等用户同意cookie才执行 */}
         <Script
           id="ga4-script"
@@ -53,7 +64,6 @@ export default function RootLayout({
             `,
           }}
         />
-
         {/* AdSense广告脚本，用户同意Cookie才加载 */}
         <Script
           id="adsense-script"

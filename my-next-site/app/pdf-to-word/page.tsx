@@ -1,4 +1,11 @@
-import type { Metadata } from 'next';
+import type { Metadata } from 'next'
+export const metadata: Metadata = {
+  title: 'PDF to Word Converter',
+  description: 'Convert PDF to editable DOCX Word document online for free. Preserve text and table layout, no signup required.',
+  alternates: {
+    canonical: '/pdf-to-word',
+  },
+}
 import FreeBasicPanel from '@/components/pdfConverter/FreeBasicPanel';
 import PremiumPanel from '@/components/pdfConverter/PremiumPanel';
 import FAQAccordion from '@/components/FAQAccordion';

@@ -1,12 +1,16 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Blog",
+  description: "Guides and tips for PDF and document conversion. Learn how to convert PDF to Word and manage your digital documents easily.",
+  alternates: {
+    canonical: '/blog',
+  },
+};
 import { blogPosts } from '@/lib/post';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/Card';
 import Button from '@/components/Button';
 import Link from 'next/link';
-
-export const metadata = {
-  title: "Blog | FileDocSwift",
-  description: "Guides and tips for PDF and document conversion. Learn how to convert PDF to Word and manage your digital documents easily.",
-};
 
 export default function BlogListPage() {
   return (

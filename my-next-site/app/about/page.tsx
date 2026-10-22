@@ -1,3 +1,11 @@
+import type { Metadata } from 'next'
+export const metadata: Metadata = {
+  title: 'PDF to Word Converter',
+  description: 'Convert PDF to editable DOCX Word document online for free. Preserve text and table layout, no signup required.',
+  alternates: {
+    canonical: '/pdf-to-word',
+  },
+}
 export default function AboutPage() {
   return (
     <main className="py-12 md:py-16">

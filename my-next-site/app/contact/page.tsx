@@ -1,6 +1,17 @@
 'use client';
+import type { Metadata } from 'next'
+export const metadata: Metadata = {
+  title: 'PDF to Word Converter',
+  description: 'Convert PDF to editable DOCX Word document online for free. Preserve text and table layout, no signup required.',
+  alternates: {
+    canonical: '/pdf-to-word',
+  },
+}
 import { useState } from 'react';
 import Button from '@/components/Button';
+
+
+
 export default function ContactPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
