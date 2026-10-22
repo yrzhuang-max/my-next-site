@@ -114,10 +114,20 @@ export default function PdfToWordPage() {
         </div>
       </section>
 
-      <section className="mt-16">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Frequently Asked Questions</h2>
-        <FAQAccordion items={faqList} />
-      </section>
+<section className="mt-16">
+  <h2 className="text-2xl font-semibold text-gray-800 mb-6">Frequently Asked Questions</h2>
+  {/* 给爬虫读取，sr-only，谷歌合规 */}
+  <div className="sr-only">
+    {faqList.map((item) => (
+      <div key={item.question}>
+        <p>{item.question}</p>
+        <p>{item.answer}</p>
+      </div>
+    ))}
+  </div>
+  {/* 原有折叠交互面板，保持不变 */}
+  <FAQAccordion items={faqList} />
+</section>
 
       {/* 原生script，服务端直接渲染进HTML，不要 import Script */}
       <script
