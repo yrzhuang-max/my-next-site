@@ -9,7 +9,6 @@ export default function PremiumPanel() {
 
   const handleNotifySubmit = async () => {
     if (!email || !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) return;
-    // 这里后续可以对接Resend，把意向订阅发给你
     console.log('waitlist email:', email);
     setSubmitted(true);
   };
@@ -30,11 +29,11 @@ export default function PremiumPanel() {
 
         <div className="bg-sky-50 border border-sky-200 p-4 rounded-md">
           <p className="text-sky-700 font-medium">🚧 Premium feature under construction</p>
-          <p className="text-sky-600 text-xs mt-1">OCR、排版还原、批量转换正在开发，上线后第一时间通知你</p>
+          <p className="text-sky-600 text-xs mt-1">OCR, layout restoration and batch conversion are in development. We will notify you once launched.</p>
         </div>
 
         {submitted ? (
-          <p className="text-green-600 text-sm">✅ 登记成功，上线通知将发送至你的邮箱</p>
+          <p className="text-green-600 text-sm">✅ Registered successfully. Launch notification will be sent to your email.</p>
         ) : (
           <div className="space-y-3">
             <input
@@ -45,7 +44,7 @@ export default function PremiumPanel() {
               className="w-full border px-3 py-2 rounded-md text-sm"
             />
             <Button onClick={handleNotifySubmit} className="w-full">
-              Subscribe for launch notice
+              Subscribe for Launch Notice
             </Button>
           </div>
         )}
