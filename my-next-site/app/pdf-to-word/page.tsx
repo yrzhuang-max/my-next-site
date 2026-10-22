@@ -1,39 +1,137 @@
+import type { Metadata } from 'next';
+import Script from 'next/script';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import FreeBasicPanel from '@/components/pdfConverter/FreeBasicPanel';
 import PremiumPanel from '@/components/pdfConverter/PremiumPanel';
 import FAQAccordion from '@/components/FAQAccordion';
 
+export const metadata: Metadata = {
+  title: 'Free PDF to Word Converter | Convert PDF to DOCX Online',
+  description:
+    'Convert native text PDF to editable DOCX online for free. No registration, no email required. Max 10MB file limit. Scanned PDFs require Premium OCR.',
+  metadataBase: new URL('https://www.filedocswift.com'),
+  alternates: {
+    canonical: '/pdf-to-word',
+  },
+  openGraph: {
+    title: 'Free PDF to Word Converter | Convert PDF to DOCX Online',
+    description:
+      'Convert native text PDF to editable DOCX online for free. No registration, no email required. Max 10MB file limit. Scanned PDFs require Premium OCR.',
+    url: '/pdf-to-word',
+    type: 'website',
+    images: [{ url: '/og-pdf-to-word.jpg', width: 1200, height: 630 }],
+  },
+};
+
 const faqList = [
   {
-    question: "Is PDF to Word conversion free?",
-    answer: "Yes, you can convert PDF to Word for free with basic limits. Large files may require longer processing time.",
+    question: 'Is this PDF to Word converter free?',
+    answer:
+      'Yes. Our basic PDF to Word conversion is free with a 10MB file limit. It works for native text PDFs only. Scanned image PDFs need the Premium OCR feature.',
   },
   {
-    question: "Will my original formatting be preserved?",
-    answer: "Our tool attempts to retain text, tables and basic layout. Complex graphics or scanned image‑only PDFs may have formatting changes after conversion.",
+    question: 'Will my original formatting be preserved?',
+    answer:
+      'Our tool tries to retain text, tables and basic layout. Complex graphics or scanned image-only PDFs may have formatting changes after conversion.',
   },
   {
-    question: "Are my uploaded files secure?",
-    answer: "Files are processed temporarily and deleted after conversion. We do not store your uploaded PDFs permanently.",
+    question: 'Are my uploaded files secure?',
+    answer:
+      'Files are processed temporarily and deleted after conversion. We do not permanently store your uploaded PDFs.',
   },
 ];
 
 export default function PdfToWordPage() {
   return (
-    <main className="max-w-5xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold text-center mb-2">PDF to Word Converter</h1>
-      <p className="text-gray-600 text-center mb-10">Extract text from PDF and export editable Word document</p>
+    <main className="max-w-6xl mx-auto px-4 py-10 sm:px-6">
+      <h1 className="text-3xl font-bold text-gray-800 mb-4">Free PDF to Word Converter</h1>
+      <p className="text-gray-600 mb-10">
+        Convert your native text-based PDF files into editable Microsoft Word DOCX documents instantly.
+        No registration, no software download. Scanned image PDFs require our upcoming Premium OCR.
+      </p>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-8">
         <FreeBasicPanel />
-        {/* 功能开关：本地开启才渲染真实PremiumPanel；线上关闭保持静态 */}
-        {FEATURE_FLAGS.premiumPdfConvert ? <PremiumPanel /> : <PremiumPanel />}
+        {FEATURE_FLAGS.premiumPdfConvert && <PremiumPanel />}
       </div>
 
-      <div className="mt-12">
-        <h2 className="text-xl font-semibold mb-4">FAQs</h2>
+      <section className="mt-16">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6">How it works</h2>
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="border border-gray-200 rounded-xl p-5">
+            <h3 className="font-semibold text-gray-800 mb-2">Step 1: Upload your PDF</h3>
+            <p className="text-sm text-gray-600">
+              Upload a native text PDF. Free plan supports files up to 10MB. Scanned PDFs are not supported for free conversion.
+            </p>
+          </div>
+          <div className="border border-gray-200 rounded-xl p-5">
+            <h3 className="font-semibold text-gray-800 mb-2">Step 2: Start conversion</h3>
+            <p className="text-sm text-gray-600">
+              Our server extracts text and structure and generates an editable DOCX file.
+            </p>
+          </div>
+          <div className="border border-gray-200 rounded-xl p-5">
+            <h3 className="font-semibold text-gray-800 mb-2">Step 3: Download DOCX</h3>
+            <p className="text-sm text-gray-600">
+              Download your Word file. Source files are automatically deleted after processing.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-16">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Frequently Asked Questions</h2>
         <FAQAccordion items={faqList} />
-      </div>
+      </section>
+
+      {/* JSON-LD Schema */}
+      <Script
+        id="pdf-convert-howto-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'HowTo',
+            name: 'How to convert PDF to DOCX for free',
+            description: 'Convert native text PDF to editable Word DOCX online for free',
+            step: [
+              {
+                '@type': 'HowToStep',
+                name: 'Upload your PDF',
+                text: 'Upload a native text PDF, maximum 10MB for free conversion.',
+              },
+              {
+                '@type': 'HowToStep',
+                name: 'Start conversion',
+                text: 'The server extracts content and builds an editable DOCX document.',
+              },
+              {
+                '@type': 'HowToStep',
+                name: 'Download DOCX',
+                text: 'Download your Word file, uploaded files are deleted after processing.',
+              },
+            ],
+          }),
+        }}
+      />
+      <Script
+        id="pdf-convert-faq-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: faqList.map((q) => ({
+              '@type': 'Question',
+              name: q.question,
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: q.answer,
+              },
+            })),
+          }),
+        }}
+      />
     </main>
   );
 }
