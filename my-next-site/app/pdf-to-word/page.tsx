@@ -90,29 +90,29 @@ export default function PdfToWordPage() {
         <PremiumPanel />
       </div>
 
-      <section className="mt-16">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">How it works</h2>
-        <div className="grid gap-6 md:grid-cols-3">
-          <div className="border border-gray-200 rounded-xl p-5">
-            <h3 className="font-semibold text-gray-800 mb-2">Step 1: Upload your PDF</h3>
-            <p className="text-sm text-gray-600">
-              Upload a native text PDF. Free plan supports files up to 10MB. Scanned PDFs are not supported for free conversion.
-            </p>
-          </div>
-          <div className="border border-gray-200 rounded-xl p-5">
-            <h3 className="font-semibold text-gray-800 mb-2">Step 2: Start conversion</h3>
-            <p className="text-sm text-gray-600">
-              Our server extracts text and structure and generates an editable DOCX file.
-            </p>
-          </div>
-          <div className="border border-gray-200 rounded-xl p-5">
-            <h3 className="font-semibold text-gray-800 mb-2">Step 3: Download DOCX</h3>
-            <p className="text-sm text-gray-600">
-              Download your Word file. Source files are automatically deleted after processing.
-            </p>
-          </div>
-        </div>
-      </section>
+<section className="mt-16">
+  <h2 className="text-2xl font-semibold text-gray-800 mb-6">How it works</h2>
+  <div className="grid gap-6 md:grid-cols-3">
+    <div className="border border-gray-200 rounded-xl p-5">
+      <h3 className="font-semibold text-gray-800 mb-2">Upload your PDF</h3>
+      <p className="text-sm text-gray-600">
+        Upload a native text PDF, maximum 10MB for free conversion.
+      </p>
+    </div>
+    <div className="border border-gray-200 rounded-xl p-5">
+      <h3 className="font-semibold text-gray-800 mb-2">Start conversion</h3>
+      <p className="text-sm text-gray-600">
+        The server extracts content and builds an editable DOCX document.
+      </p>
+    </div>
+    <div className="border border-gray-200 rounded-xl p-5">
+      <h3 className="font-semibold text-gray-800 mb-2">Download DOCX</h3>
+      <p className="text-sm text-gray-600">
+        Download your Word file, uploaded files are deleted after processing.
+      </p>
+    </div>
+  </div>
+</section>
 
 <section className="mt-16">
   <h2 className="text-2xl font-semibold text-gray-800 mb-6">Frequently Asked Questions</h2>
