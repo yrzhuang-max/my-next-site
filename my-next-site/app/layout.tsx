@@ -13,9 +13,6 @@ export const metadata: Metadata = {
   },
   description: 'Free online PDF to Word converter. Convert PDF to editable DOCX quickly, no registration required.',
   metadataBase: new URL('https://www.filedocswift.com'),
-  alternates: {
-    canonical: '/',
-  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -42,16 +39,15 @@ export default function RootLayout({
         </div>
         <Footer />
         <CookieBanner />
-        {/* Vercel Web Analytics，无Cookie，直接启用，不需要用户授权 */}
         <Analytics />
-        {/* GA4 脚本，延迟加载，等用户同意cookie才执行 */}
+
+        {/* GA4 脚本：等待cookie同意，同时兼容历史已同意状态 */}
         <Script
-          id="ga4-script"
+          id="ga4-loader"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-              window.addEventListener('cookieConsentAccepted', function() {
-                // 替换成你的GA4 MEASUREMENT ID G-XXXXXXX
+              function loadGA(){
                 const script = document.createElement('script');
                 script.src = 'https://www.googletagmanager.com/gtag/js?id=G-YOUR_GA_ID';
                 script.async = true;
@@ -60,23 +56,25 @@ export default function RootLayout({
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
                 gtag('config', 'G-YOUR_GA_ID');
-              })
-            `,
-          }}
-        />
-        {/* AdSense广告脚本，用户同意Cookie才加载 */}
-        <Script
-          id="adsense-script"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.addEventListener('cookieConsentAccepted', function() {
+              }
+              function loadAdsense(){
                 const adsScript = document.createElement('script');
                 adsScript.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_PUB_ID';
                 adsScript.crossOrigin="anonymous";
                 adsScript.async = true;
                 document.head.appendChild(adsScript);
-              })
+              }
+              function loadTracking(){
+                loadGA();
+                loadAdsense();
+              }
+              // 页面加载时，检查localStorage是否已经同意cookie
+              if(localStorage.getItem("cookieConsent") === "accepted"){
+                loadTracking();
+              }else{
+                // 用户点击同意后触发
+                window.addEventListener('cookieConsentAccepted', loadTracking, {once:true});
+              }
             `,
           }}
         />

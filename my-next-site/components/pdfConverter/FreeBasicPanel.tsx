@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/Card';
 import Button from '@/components/Button';
@@ -17,7 +17,16 @@ export default function FreeBasicPanel() {
   const [basicOverLimit, setBasicOverLimit] = useState(false);
   const [basicRejectReason, setBasicRejectReason] = useState('');
 
+  // 用来取消上一次fetch请求
+  const abortCtrlRef = useRef<AbortController | null>(null);
+
   const handleBasicFileSelect = (selectedFile: File | null) => {
+    // 取消正在进行中的旧请求
+    if (abortCtrlRef.current) {
+      abortCtrlRef.current.abort();
+      abortCtrlRef.current = null;
+    }
+
     setBasicError('');
     setBasicWarnMsg('');
     setBasicResultText('');
@@ -26,6 +35,7 @@ export default function FreeBasicPanel() {
     setBasicFile(selectedFile);
 
     if (!selectedFile) return;
+
     const fileMb = selectedFile.size / 1024 / 1024;
     if (fileMb > FREE_MAX_MB) {
       setBasicOverLimit(true);
@@ -40,23 +50,28 @@ export default function FreeBasicPanel() {
     }
     if (basicOverLimit) return;
 
+    // 新建控制器
+    const controller = new AbortController();
+    abortCtrlRef.current = controller;
+
     setBasicLoading(true);
     setBasicError('');
     setBasicWarnMsg('');
     setBasicRejectReason('');
+
     try {
       const formData = new FormData();
       formData.append('file', basicFile);
       const targetUrl = `${apiUrl}/extract-text`;
-      console.log('request url:', targetUrl);
 
       const res = await fetch(targetUrl, {
         method: 'POST',
         body: formData,
+        signal: controller.signal,
       });
-      console.log('response status:', res.status);
 
       const data = await res.json().catch(() => ({ detail: 'Server error' }));
+
       if (!res.ok) {
         throw new Error(`Status ${res.status}, detail: ${data.detail ?? 'unknown'}`);
       }
@@ -72,11 +87,15 @@ export default function FreeBasicPanel() {
         return;
       }
 
-      // 前端兜底过滤控制字符
+      // 过滤不可见控制字符
       const cleanText = (data.text || '').replace(/[\x00-\x08\x0b\x0c\x0e-\x1F]/g, '');
       setBasicResultText(cleanText);
       setBasicWarnMsg('✅ Text extracted successfully.');
     } catch (err: unknown) {
+      if ((err as Error).name === 'AbortError') {
+        // 用户切换文件、请求被主动取消，不报错
+        return;
+      }
       if (err instanceof Error) {
         setBasicError(err.message);
       } else {
@@ -84,21 +103,33 @@ export default function FreeBasicPanel() {
       }
     } finally {
       setBasicLoading(false);
+      if (abortCtrlRef.current === controller) {
+        abortCtrlRef.current = null;
+      }
     }
   };
 
   const handleDownloadDocx = async (text: string) => {
-    if (!text) return;
+    if (!text || !basicFile) return;
     try {
-      const paragraphs = text.split('\n').map((line) => {
-        return new Paragraph({ children: [new TextRun(line)] });
+      // 按空行切分段落，排版更好
+      const rawBlocks = text.split(/\n\s*\n/);
+      const paragraphs = rawBlocks.map((block) => {
+        const lineRuns = block.split('\n').map(line => new TextRun(line));
+        return new Paragraph({ children: lineRuns });
       });
-      const doc = new Document({ sections: [{ children: paragraphs }] });
+
+      const doc = new Document({
+        sections: [{ children: paragraphs }]
+      });
       const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
+
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'extracted.docx';
+      // 沿用原文件名，后缀改成docx
+      const baseName = basicFile.name.replace(/\.pdf$/i, '');
+      a.download = `${baseName}.docx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -150,7 +181,7 @@ export default function FreeBasicPanel() {
             <textarea
               readOnly
               value={basicResultText}
-              className="w-full h-64 border p-3 rounded-md resize-y text-sm"
+              className="w-full h-64 border p-3 rounded-md resize-y text-sm overflow-auto"
             />
             <div className="mt-3">
               <Button variant="outline" onClick={() => handleDownloadDocx(basicResultText)} className="w-full">

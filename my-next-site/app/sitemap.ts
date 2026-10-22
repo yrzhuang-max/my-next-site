@@ -3,7 +3,6 @@ import { blogPosts } from '@/lib/post';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.filedocswift.com'
-
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}/`,
@@ -35,26 +34,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.6,
     },
+    // ✅ 修正为 /legal/ 路径，和你目录对齐
     {
-      url: `${baseUrl}/privacy-policy/`,
+      url: `${baseUrl}/legal/privacy-policy/`,
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.4,
     },
     {
-      url: `${baseUrl}/terms-of-service/`,
+      url: `${baseUrl}/legal/terms-of-service/`,
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.4,
     },
     {
-      url: `${baseUrl}/cookie-policy/`,
+      url: `${baseUrl}/legal/cookie-policy/`,
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.4,
     },
   ]
-
   const blogPages: MetadataRoute.Sitemap = blogPosts.map(post => ({
     url: `${baseUrl}/blog/${post.slug}/`,
     lastModified: new Date(post.isoDate),
@@ -62,4 +61,4 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7
   }))
   return [...staticPages, ...blogPages]
-  }
+}

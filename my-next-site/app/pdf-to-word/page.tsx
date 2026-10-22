@@ -1,24 +1,14 @@
-import type { Metadata } from 'next'
+import type { Metadata } from 'next';
 import FreeBasicPanel from '@/components/pdfConverter/FreeBasicPanel';
 import PremiumPanel from '@/components/pdfConverter/PremiumPanel';
 import FAQAccordion from '@/components/FAQAccordion';
 
 export const metadata: Metadata = {
   title: 'Free PDF to Word Converter | Convert PDF to DOCX Online',
-  description:
-    'Convert native text PDF to editable DOCX online for free. No registration, no email required. Max 10MB file limit. Scanned PDFs require Premium OCR.',
-  metadataBase: new URL('https://www.filedocswift.com'),
+  description: 'Convert native text PDF into editable Microsoft Word DOCX instantly. Free, no registration. Scanned image PDFs require Premium OCR.',
   alternates: {
-    canonical: '/pdf-to-word',
-  },
-  openGraph: {
-    title: 'Free PDF to Word Converter | Convert PDF to DOCX Online',
-    description:
-      'Convert native text PDF to editable DOCX online for free. No registration, no email required. Max 10MB file limit. Scanned PDFs require Premium OCR.',
-    url: '/pdf-to-word',
-    type: 'website',
-    images: [{ url: '/og-pdf-to-word.jpg', width: 1200, height: 630 }],
-  },
+    canonical: 'https://www.filedocswift.com/pdf-to-word/'
+  }
 };
 
 const faqList = [
@@ -90,36 +80,36 @@ export default function PdfToWordPage() {
         <PremiumPanel />
       </div>
 
-<section className="mt-16">
-  <h2 className="text-2xl font-semibold text-gray-800 mb-6">How it works</h2>
-  <div className="grid gap-6 md:grid-cols-3">
-    <div className="border border-gray-200 rounded-xl p-5">
-      <h3 className="font-semibold text-gray-800 mb-2">Upload your PDF</h3>
-      <p className="text-sm text-gray-600">
-        Upload a native text PDF, maximum 10MB for free conversion.
-      </p>
-    </div>
-    <div className="border border-gray-200 rounded-xl p-5">
-      <h3 className="font-semibold text-gray-800 mb-2">Start conversion</h3>
-      <p className="text-sm text-gray-600">
-        The server extracts content and builds an editable DOCX document.
-      </p>
-    </div>
-    <div className="border border-gray-200 rounded-xl p-5">
-      <h3 className="font-semibold text-gray-800 mb-2">Download DOCX</h3>
-      <p className="text-sm text-gray-600">
-        Download your Word file, uploaded files are deleted after processing.
-      </p>
-    </div>
-  </div>
-</section>
+      <section className="mt-16">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6">How it works</h2>
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="border border-gray-200 rounded-xl p-5">
+            <h3 className="font-semibold text-gray-800 mb-2">Upload your PDF</h3>
+            <p className="text-sm text-gray-600">
+              Upload a native text PDF, maximum 10MB for free conversion.
+            </p>
+          </div>
+          <div className="border border-gray-200 rounded-xl p-5">
+            <h3 className="font-semibold text-gray-800 mb-2">Start conversion</h3>
+            <p className="text-sm text-gray-600">
+              The server extracts content and builds an editable DOCX document.
+            </p>
+          </div>
+          <div className="border border-gray-200 rounded-xl p-5">
+            <h3 className="font-semibold text-gray-800 mb-2">Download DOCX</h3>
+            <p className="text-sm text-gray-600">
+              Download your Word file, uploaded files are deleted after processing.
+            </p>
+          </div>
+        </div>
+      </section>
 
-<section className="mt-16">
-  <h2 className="text-2xl font-semibold text-gray-800 mb-6">Frequently Asked Questions</h2>
-  <FAQAccordion items={faqList} />
-</section>
+      <section className="mt-16">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Frequently Asked Questions</h2>
+        <FAQAccordion items={faqList} />
+      </section>
 
-      {/* 原生script，服务端直接渲染进HTML，不要 import Script */}
+      {/* Schema JSON-LD，服务端渲染 */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJson) }}
