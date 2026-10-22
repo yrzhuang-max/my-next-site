@@ -46,8 +46,8 @@ export default function PdfToWordPage() {
     <main className="max-w-6xl mx-auto px-4 py-10 sm:px-6">
       <h1 className="text-3xl font-bold text-gray-800 mb-4">Free PDF to Word Converter</h1>
       <p className="text-gray-600 mb-10">
-        Convert your native text-based PDF files into editable Microsoft Word DOCX documents instantly.
-        No registration, no software download. Scanned image PDFs require our upcoming Premium OCR.
+        Convert native text PDF into editable Microsoft Word DOCX instantly.
+        Free, no registration and no downloads. Scanned image PDFs require our upcoming Premium OCR.
       </p>
 
       <div className="grid md:grid-cols-2 gap-8">
