@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
-import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import FreeBasicPanel from '@/components/pdfConverter/FreeBasicPanel';
 import PremiumPanel from '@/components/pdfConverter/PremiumPanel';
 import FAQAccordion from '@/components/FAQAccordion';
@@ -52,7 +51,7 @@ export default function PdfToWordPage() {
 
       <div className="grid md:grid-cols-2 gap-8">
         <FreeBasicPanel />
-        {FEATURE_FLAGS.premiumPdfConvert && <PremiumPanel />}
+        <PremiumPanel />
       </div>
 
       <section className="mt-16">
