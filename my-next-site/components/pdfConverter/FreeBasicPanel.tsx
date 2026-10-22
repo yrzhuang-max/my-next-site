@@ -11,7 +11,7 @@ export default function FreeBasicPanel() {
   const [basicLoading, setBasicLoading] = useState(false);
   const [basicResultText, setBasicResultText] = useState('');
   const [basicError, setBasicError] = useState('');
-  const [basicWarnMsg, setBasicWarnMsg('');
+  const [basicWarnMsg, setBasicWarnMsg('') = useState('');
   const [basicOverLimit, setBasicOverLimit] = useState(false);
   const [basicRejectReason, setBasicRejectReason] = useState('');
   // 用来取消上一次fetch请求
