@@ -7,10 +7,9 @@ export async function POST(req: Request) {
     if (!receiveEmail) {
       return Response.json({ success: false, message: "Email config missing" }, { status: 500 });
     }
-    // 保留你原来的 website 蜜罐字段，不改动前端字段名
     const { name, email, message, website } = await req.json();
 
-    // 蜜罐校验：website不为空直接拦截（和你原来逻辑一致）
+    // 蜜罐校验：website不为空直接拦截
     if (website) {
       return Response.json({ success: false, message: "Submission blocked" }, { status: 400 });
     }
@@ -19,7 +18,7 @@ export async function POST(req: Request) {
       return Response.json({ success: false, message: "Please fill out all fields" }, { status: 400 });
     }
 
-    // 新增简单邮箱格式校验
+    // 邮箱格式校验
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return Response.json({ success: false, message: "Invalid email address" }, { status: 400 });
@@ -54,7 +53,7 @@ Submitted via filedocswift.com contact form
     const { error } = await resend.emails.send({
       from: 'Contact <contact@filedocswift.com>',
       to: receiveEmail,
-      reply_to: email, // ✅ 重点：回复自动给到访客邮箱
+      replyTo: email, // ✅ 这里改成 replyTo（小驼峰！）
       subject,
       text,
       html,
