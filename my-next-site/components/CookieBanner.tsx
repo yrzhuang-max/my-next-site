@@ -64,7 +64,7 @@ export default function CookieBanner() {
             Reject Non-Essential
           </button>
           <a
-            href="/cookie-policy/"
+            href="legal/cookie-policy/"
             className="text-blue-300 underline text-sm ml-auto"
           >
             Cookie Policy
