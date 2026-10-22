@@ -1,17 +1,14 @@
 'use client';
 import { useState } from 'react';
 import Button from '@/components/Button';
-
 export default function ContactPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   // honeypot字段
   const [website, setWebsite] = useState('');
-
   const [loading, setLoading] = useState(false);
   const [tip, setTip] = useState<{ text: string; ok: boolean } | null>(null);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -23,24 +20,21 @@ export default function ContactPage() {
         body: JSON.stringify({ name, email, message, website }),
       });
       const result = await res.json();
-      if (result.spam) {
-        setTip({ text: '提交被拦截，请稍后重试', ok: false });
-      } else if (result.success) {
-        setTip({ text: '消息发送成功！', ok: true });
+      if (result.success) {
+        setTip({ text: 'Thank you! Your message has been sent successfully.', ok: true });
         setName('');
         setEmail('');
         setMessage('');
         setWebsite('');
       } else {
-        setTip({ text: '发送失败，请重试', ok: false });
+        setTip({ text: result.message || 'Failed to send, please try again later.', ok: false });
       }
     } catch (_err) {
-      setTip({ text: '网络错误，请稍后再试', ok: false });
+      setTip({ text: 'Network error, please try again later.', ok: false });
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <main className="py-12 md:py-16">
       <div className="max-w-xl mx-auto px-4 sm:px-6">
@@ -76,20 +70,16 @@ export default function ContactPage() {
               className="w-full border border-gray-300 rounded px-3 py-2"
             />
           </div>
-
-          {/* ===== HoneyPot 蜜罐（隐藏，不要删除 ===== */}
-          <div className="hidden">
-            <label htmlFor="website">Website</label>
-            <input
-              id="website"
-              name="website"
-              tabIndex={-1}
-              autoComplete="off"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-            />
-          </div>
-
+          {/* ===== HoneyPot 蜜罐，移出屏幕外（推荐方案） ===== */}
+          <input
+            id="website"
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            className="absolute -left-[9999px] w-0 h-0 opacity-0 pointer-events-none"
+          />
           <Button type="submit" disabled={loading}>
             {loading ? 'Sending...' : 'Send Message'}
           </Button>
