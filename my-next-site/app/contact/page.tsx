@@ -46,7 +46,6 @@ export default function ContactPage() {
           Have questions, feedback or business inquiries? Fill out the form below or send an email directly to{' '}
           <a href="mailto:contact@filedocswift.com" className="text-blue-600 hover:underline">contact@filedocswift.com</a>.
         </p>
-
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
@@ -92,7 +91,6 @@ export default function ContactPage() {
             {loading ? 'Sending...' : 'Send Message'}
           </Button>
         </form>
-
         {tip && (
           <p className={`mt-4 ${tip.ok ? 'text-green-600' : 'text-red-600'}`}>
             {tip.text}

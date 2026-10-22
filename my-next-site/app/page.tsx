@@ -1,9 +1,14 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/Card';
 import Button from '@/components/Button';
+import Link from 'next/link';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'FileDocSwift | Free Online Document Converter',
-  description: 'Convert PDF to Word online for free. Turn static PDF files into editable DOCX documents quickly, no registration required.',
+export const metadata: Metadata = {
+  title: 'FileDocSwift | Free PDF to Word Online Document Converter',
+  description: 'Convert PDF to Word online for free. Turn static PDF files into editable DOCX documents quickly, no registration or email required.',
+  alternates: {
+    canonical: 'https://www.filedocswift.com/'
+  }
 };
 
 export default function HomePage() {
@@ -13,15 +18,15 @@ export default function HomePage() {
       <section className="py-16 md:py-24 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Fast & Free Online Document Conversion
+            Fast & Free PDF to Word Document Conversion
           </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             FileDocSwift helps you convert static PDF files into fully editable Microsoft Word DOCX documents.
             No sign-up, no software download, just upload and convert instantly.
           </p>
-          <a href="/pdf-to-word/">
+          <Link href="/pdf-to-word/">
             <Button size="lg">Convert PDF to Word Now</Button>
-          </a>
+          </Link>
         </div>
       </section>
 
@@ -40,7 +45,6 @@ export default function HomePage() {
                 </p>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>No Registration</CardTitle>
@@ -51,7 +55,6 @@ export default function HomePage() {
                 </p>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Secure Processing</CardTitle>
@@ -73,11 +76,26 @@ export default function HomePage() {
           <p className="text-gray-600 mb-8">
             Convert text-based PDFs into editable .docx files. Preserve text content, tables and basic document layout.
           </p>
-          <a href="/pdf-to-word/">
+          <Link href="/pdf-to-word/">
             <Button size="lg" variant="outline">Go to PDF to Word Converter</Button>
-          </a>
+          </Link>
         </div>
       </section>
+
+      {/* 可选：Organization 结构化数据，首页品牌Schema，不需要可以删掉这一段 */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "FileDocSwift",
+            "url": "https://www.filedocswift.com/",
+            "description": "Free online PDF to Word converter tool",
+            "logo": "https://www.filedocswift.com/logo.png"
+          })
+        }}
+      />
     </main>
   );
 }

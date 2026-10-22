@@ -4,8 +4,8 @@ import PremiumPanel from '@/components/pdfConverter/PremiumPanel';
 import FAQAccordion from '@/components/FAQAccordion';
 
 export const metadata: Metadata = {
-  title: 'Free PDF to Word Converter | Convert PDF to DOCX Online',
-  description: 'Convert native text PDF into editable Microsoft Word DOCX instantly. Free, no registration. Scanned image PDFs require Premium OCR.',
+  title: 'PDF to Word Converter | Convert PDF to Editable Word Online Free - FileDocSwift',
+  description: 'Convert native text PDF into editable Microsoft Word DOCX instantly. Free, no registration, no email required. Scanned image PDFs require Premium OCR.',
   alternates: {
     canonical: 'https://www.filedocswift.com/pdf-to-word/'
   }
@@ -25,7 +25,7 @@ const faqList = [
   {
     question: 'Are my uploaded files secure?',
     answer:
-      'Files are processed temporarily and deleted after conversion. We do not permanently store your uploaded PDFs.',
+      'Files are processed temporarily and deleted after conversion. We do not permanently store your uploaded PDFs or share them with third parties.',
   },
 ];
 
@@ -69,10 +69,10 @@ const faqJson = {
 export default function PdfToWordPage() {
   return (
     <main className="max-w-6xl mx-auto px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-4">Free PDF to Word Converter</h1>
-      <p className="text-gray-600 mb-10">
+      <h1 className="text-[clamp(2rem,5vw,3rem)] font-bold text-gray-800 mb-4">Convert PDF to Word Online Free</h1>
+      <p className="text-gray-600 mb-10 text-lg">
         Convert native text PDF into editable Microsoft Word DOCX instantly.
-        Free, no registration and no downloads. Scanned image PDFs require our upcoming Premium OCR.
+        Free, no registration, no email and no downloads. Scanned image PDFs require our Premium OCR feature.
       </p>
 
       <div className="grid md:grid-cols-2 gap-8">
@@ -109,7 +109,7 @@ export default function PdfToWordPage() {
         <FAQAccordion items={faqList} />
       </section>
 
-      {/* Schema JSON-LD，服务端渲染 */}
+      {/* Schema JSON-LD */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJson) }}
