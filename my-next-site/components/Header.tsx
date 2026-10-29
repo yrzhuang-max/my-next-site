@@ -34,7 +34,7 @@ export default function Header() {
         } else {
           setUser(null);
         }
-      } catch () {
+      } catch (_err) {
         setUser(null);
       } finally {
         setLoading(false);
@@ -53,16 +53,6 @@ export default function Header() {
     router.push("/login");
     router.refresh();
   };
-
-  // 登录相关导航
-  const authLinks = !user
-    ? [
-        { label: "Sign In", href: "/login" },
-        { label: "Register", href: "/register" },
-      ]
-    : [
-        { label: user.email, href: "/dashboard" },
-      ];
 
   return (
     <header className="border-b border-slate-200 bg-white sticky top-0 z-50">
