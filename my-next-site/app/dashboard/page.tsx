@@ -6,45 +6,75 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ id: number; email: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState('');
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const res = await fetch(`${base}/api/auth/me`, {
-          credentials: 'include'
+          method: 'GET',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
         });
-        if (!res.ok) throw new Error('Unauthorized');
+        if (!res.ok) {
+          throw new Error('Unauthorized');
+        }
         const data = await res.json();
         setUser(data.user);
-      } catch (_) {
-        router.push('/login');
+      } catch {
+        setErr('未登录或登录已过期，正在跳转登录页');
+        setTimeout(() => router.push('/login'), 1200);
       } finally {
         setLoading(false);
       }
     };
     fetchUser();
-  }, [router, base]);
+  }, [base, router]);
 
   const handleLogout = async () => {
-    await fetch(`${base}/api/auth/logout`, {
-      method: 'POST',
-      credentials: 'include'
-    });
-    router.push('/login');
+    try {
+      await fetch(`${base}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } finally {
+      router.push('/login');
+    }
   };
 
-  if (loading) return <div className="p-10">Loading...</div>;
-  if (!user) return null;
+  if (loading) {
+    return (
+      <main className="max-w-md mx-auto mt-16 px-4">
+        <p>Loading...</p>
+      </main>
+    );
+  }
+
+  if (err) {
+    return (
+      <main className="max-w-md mx-auto mt-16 px-4">
+        <div className="bg-red-50 text-red-700 p-3 rounded">
+          {err}
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="max-w-md mx-auto mt-16 px-4">
-      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-      <p className="mb-2">Email: {user.email}</p>
-      <p className="mb-6">User ID: {user.id}</p>
+      <h1 className="text-2xl font-bold mb-2">Dashboard</h1>
+      <p className="text-gray-600 mb-6">Welcome</p>
+
+      <div className=" border p-4 rounded mb-6">
+        <p className="mb-1"><span className="font-medium">User ID：</span>{user?.id}</p>
+        <p><span className="font-medium">Email：</span>{user?.email}</p>
+      </div>
+
       <button
         onClick={handleLogout}
-        className="px-4 py-2 bg-red-500 text-white rounded"
+        className="w-full bg-red-600 text-white py-2 rounded"
       >
         Logout
       </button>
