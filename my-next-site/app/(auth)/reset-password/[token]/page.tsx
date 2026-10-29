@@ -1,6 +1,5 @@
-// app/(auth)/reset-password/[token]/page.tsx
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,7 +17,7 @@ type FormData = z.infer<typeof schema>;
 export default function ResetConfirmPage() {
   const router = useRouter();
   const params = useParams();
-  const token = params.token as string;
+  const [token, setToken] = useState<string>('');
 
   const [serverMsg, setServerMsg] = useState('');
   const [serverErr, setServerErr] = useState('');
@@ -28,7 +27,14 @@ export default function ResetConfirmPage() {
     resolver: zodResolver(schema),
   });
 
+  // 挂载之后再读取 params
+  useEffect(() => {
+    const t = params.token as string;
+    if (t) setToken(t);
+  }, [params]);
+
   const onSubmit = async (data: FormData) => {
+    if (!token) return;
     setServerMsg('');
     setServerErr('');
     setLoading(true);
