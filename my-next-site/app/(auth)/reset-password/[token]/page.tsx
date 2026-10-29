@@ -1,4 +1,5 @@
 'use client';
+export const instant = false;
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
