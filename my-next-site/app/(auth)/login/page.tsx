@@ -16,6 +16,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [serverErr, setServerErr] = useState('');
   const [loading, setLoading] = useState(false);
+  const [hcaptchaToken, setHcaptchaToken] = useState('');
   const captchaRef = useRef<HCaptcha>(null);
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -26,8 +27,7 @@ export default function LoginPage() {
   const onSubmit = async (formData: FormData) => {
     setLoading(true);
     setServerErr('');
-    const token = captchaRef.current?.getResponse();
-    if (!token) {
+    if (!hcaptchaToken) {
       setServerErr("hCaptcha验证未完成");
       setLoading(false);
       return;
@@ -40,7 +40,7 @@ export default function LoginPage() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          hcaptchaToken: token,
+          hcaptchaToken: hcaptchaToken,
         }),
       });
       const result = await res.json();
@@ -54,6 +54,8 @@ export default function LoginPage() {
       setServerErr("网络请求异常，请稍后重试");
     } finally {
       setLoading(false);
+      captchaRef.current?.resetCaptcha();
+      setHcaptchaToken('');
     }
   };
 
@@ -99,6 +101,7 @@ export default function LoginPage() {
           ref={captchaRef}
           sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITEKEY!}
           languageOverride="en"
+          onVerify={(token) => setHcaptchaToken(token)}
         />
         <button
           type="submit"
@@ -108,7 +111,11 @@ export default function LoginPage() {
           {loading ? 'Signing in…' : 'Sign In'}
         </button>
       </form>
-      <p className="mt-4 text-sm">
+      {/* 新增忘记密码链接 */}
+      <p className="mt-3 text-sm">
+        <a href="/reset-password" className="text-blue-600 underline">Forgot password?</a>
+      </p>
+      <p className="mt-2 text-sm">
         Don't have an account? <a href="/register" className="text-blue-600 underline">Create one</a>
       </p>
     </main>
