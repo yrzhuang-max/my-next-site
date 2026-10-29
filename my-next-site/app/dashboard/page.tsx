@@ -17,8 +17,7 @@ export default function DashboardPage() {
         if (!res.ok) throw new Error('Unauthorized');
         const data = await res.json();
         setUser(data.user);
-      } catch () {
-        // 未登录，自动跳回登录页
+      } catch (_) {
         router.push('/login');
       } finally {
         setLoading(false);
