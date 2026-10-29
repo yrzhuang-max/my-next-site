@@ -54,7 +54,6 @@ export default function LoginPage() {
       setServerErr("网络请求异常，请稍后重试");
     } finally {
       setLoading(false);
-      captchaRef.current?.reset();
     }
   };
 

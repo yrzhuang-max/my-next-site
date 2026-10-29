@@ -56,7 +56,6 @@ export default function RegisterPage() {
       setServerErr("请求失败，请稍后重试");
     } finally {
       setLoading(false);
-      captchaRef.current?.reset();
     }
   };
 
