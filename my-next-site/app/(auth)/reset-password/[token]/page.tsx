@@ -1,10 +1,11 @@
 'use client';
-export const instant = false;
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useParams, useRouter } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
 
 const schema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
