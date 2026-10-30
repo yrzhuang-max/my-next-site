@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: 'About Us | FileDocSwift',
   description: 'Learn about FileDocSwift, our mission to provide simple, secure free online document conversion tools including PDF to Word.',
   alternates: {
-    canonical: 'https://www.filedocswift.com/about/',
+    canonical: 'https://www.filedocswift.com/about',
   },
 }
 

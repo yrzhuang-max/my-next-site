@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Cookie Policy | FileDocSwift",
   description: "Cookie Policy for FileDocSwift. Learn how we use necessary, analytics and advertising cookies from Google Analytics and AdSense.",
   alternates: {
-    canonical: "https://www.filedocswift.com/legal/cookie-policy/"
+    canonical: "https://www.filedocswift.com/legal/cookie-policy"
   }
 };
 

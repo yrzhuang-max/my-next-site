@@ -5,57 +5,56 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.filedocswift.com'
   const staticPages: MetadataRoute.Sitemap = [
     {
-      url: `${baseUrl}/`,
+      url: `${baseUrl}`, // 首页，不再带 /
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 1,
     },
     {
-      url: `${baseUrl}/pdf-to-word/`,
+      url: `${baseUrl}/pdf-to-word`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/blog/`,
+      url: `${baseUrl}/blog`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/about/`,
+      url: `${baseUrl}/about`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
-      url: `${baseUrl}/contact/`,
+      url: `${baseUrl}/contact`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.6,
     },
-    // ✅ 修正为 /legal/ 路径，和你目录对齐
     {
-      url: `${baseUrl}/legal/privacy-policy/`,
+      url: `${baseUrl}/legal/privacy-policy`,
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.4,
     },
     {
-      url: `${baseUrl}/legal/terms-of-service/`,
+      url: `${baseUrl}/legal/terms-of-service`,
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.4,
     },
     {
-      url: `${baseUrl}/legal/cookie-policy/`,
+      url: `${baseUrl}/legal/cookie-policy`,
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.4,
     },
   ]
   const blogPages: MetadataRoute.Sitemap = blogPosts.map(post => ({
-    url: `${baseUrl}/blog/${post.slug}/`,
+    url: `${baseUrl}/blog/${post.slug}`,
     lastModified: new Date(post.isoDate),
     changeFrequency: 'monthly',
     priority: 0.7

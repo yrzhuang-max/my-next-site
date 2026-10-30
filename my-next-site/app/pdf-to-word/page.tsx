@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'PDF to Word Converter | Convert PDF to Editable Word Online Free - FileDocSwift',
   description: 'Convert native text PDF into editable Microsoft Word DOCX instantly. Free, no registration, no email required. Scanned image PDFs require Premium OCR.',
   alternates: {
-    canonical: 'https://www.filedocswift.com/pdf-to-word/'
+    canonical: 'https://www.filedocswift.com/pdf-to-word'
   }
 };
 

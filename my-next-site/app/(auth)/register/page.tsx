@@ -17,6 +17,7 @@ export default function RegisterPage() {
   const [serverMsg, setServerMsg] = useState('');
   const [serverErr, setServerErr] = useState('');
   const [loading, setLoading] = useState(false);
+  const [hcaptchaToken, setHcaptchaToken] = useState('');
   const captchaRef = useRef<HCaptcha>(null);
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -26,8 +27,7 @@ export default function RegisterPage() {
 
   const onSubmit = async (formData: FormData) => {
     setLoading(true);
-    const token = captchaRef.current?.getResponse();
-    if (!token) {
+    if (!hcaptchaToken) {
       setServerErr("hCaptcha token为空！");
       setLoading(false);
       return;
@@ -40,7 +40,7 @@ export default function RegisterPage() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          hcaptchaToken: token,
+          hcaptchaToken: hcaptchaToken,
         }),
       });
       const result = await res.json();
@@ -56,6 +56,9 @@ export default function RegisterPage() {
       setServerErr("请求失败，请稍后重试");
     } finally {
       setLoading(false);
+      // 重置验证码
+      captchaRef.current?.resetCaptcha();
+      setHcaptchaToken('');
     }
   };
 
@@ -106,6 +109,7 @@ export default function RegisterPage() {
           ref={captchaRef}
           sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITEKEY!}
           languageOverride="en"
+          onVerify={(token) => setHcaptchaToken(token)}
         />
         <button
           type="submit"

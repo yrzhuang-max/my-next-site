@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Terms of Service | FileDocSwift",
   description: "Terms of Service for FileDocSwift. Rules, disclaimers and liability terms for using our free PDF to Word online conversion service.",
   alternates: {
-    canonical: "https://www.filedocswift.com/legal/terms-of-service/"
+    canonical: "https://www.filedocswift.com/legal/terms-of-service"
   }
 };
 
