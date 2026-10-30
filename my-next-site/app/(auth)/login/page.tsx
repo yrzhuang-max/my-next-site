@@ -43,6 +43,13 @@ export default function LoginPage() {
           hcaptchaToken: hcaptchaToken,
         }),
       });
+
+        // 👉 限流判断在这里
+  if (res.status === 429) {
+    setServerErr("Too many attempts, please try again later.");
+    return;
+  }
+  
       const result = await res.json();
       if (!res.ok) {
         setServerErr(result.msg);
