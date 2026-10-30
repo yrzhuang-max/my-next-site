@@ -17,7 +17,7 @@ export default function Navbar() {
           credentials: "include",
         });
         setIsLoggedIn(res.ok);
-      } catch () {
+      } catch (err) {
         setIsLoggedIn(false);
       }
     };
