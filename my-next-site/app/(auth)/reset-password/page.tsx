@@ -40,6 +40,12 @@ export default function ResetRequestPage() {
           hcaptchaToken: hcaptchaToken,
         }),
       });
+
+        // 👉 限流判断在这里
+  if (res.status === 429) {
+    setServerErr("Too many attempts, please try again later.");
+    return;
+  }
       const json = await res.json();
       if (!res.ok) throw new Error(json.detail || 'Failed to send link');
       setServerMsg(json.msg);
