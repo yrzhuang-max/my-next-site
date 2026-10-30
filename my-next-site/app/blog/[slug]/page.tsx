@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation';
 import { blogPosts } from '@/lib/post';
 import type { Metadata } from 'next';
 
-// 关键新增：告诉Next构建时要预渲染哪几个slug
 export async function generateStaticParams() {
   return blogPosts.map((post) => ({
     slug: post.slug,
@@ -15,11 +14,25 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const post = blogPosts.find(p => p.slug === slug);
   if (!post) return {};
+  const canonicalUrl = `https://filedocswift.com/blog/${slug}`;
   return {
     title: post.title,
     description: post.excerpt,
     alternates: {
-      canonical: `/blog/${slug}`,
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      url: canonicalUrl,
+      type: 'article',
+      locale: 'en_US',
+      siteName: 'FileDocSwift',
+      title: post.title,
+      description: post.excerpt,
+      publishedTime: post.isoDate,
+    },
+    robots: {
+      index: true,
+      follow: true,
     },
   };
 }

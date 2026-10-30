@@ -1,16 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Document, Packer, Paragraph } from 'docx';
 
+// 单文件上限：10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
     if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+      return NextResponse.json({ success: false, msg: 'No file uploaded' }, { status: 400 });
     }
+
+    // 文件大小校验
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { success: false, msg: 'File too large. Maximum allowed size is 10MB.' },
+        { status: 413 }
+      );
+    }
+
+    // 简单后缀校验，只允许pdf
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.pdf')) {
+      return NextResponse.json(
+        { success: false, msg: 'Only PDF files are supported.' },
+        { status: 400 }
+      );
+    }
+
     const upstreamUrl = process.env.PDF_EXTRACT_API;
     if (!upstreamUrl) {
-      return NextResponse.json({ error: "Missing PDF_EXTRACT_API environment variable", status: 500 });
+      return NextResponse.json({ success: false, msg: "Missing PDF_EXTRACT_API environment variable" }, { status: 500 });
     }
 
     const upstreamForm = new FormData();
@@ -23,13 +44,15 @@ export async function POST(req: NextRequest) {
 
     if (json.error === "no_text") {
       return NextResponse.json({
-        error: "This PDF is made of scanned images. Basic version cannot extract text from scanned PDFs or image tables.",
+        success: false,
+        msg: "This PDF is made of scanned images. Basic version cannot extract text from scanned PDFs or image tables.",
         isFullScan: true
       }, { status: 400 });
     }
     if (json.error || !json.text) {
       return NextResponse.json({
-        error: "PDF extract failed, file may be encrypted or corrupted."
+        success: false,
+        msg: "PDF extract failed, file may be encrypted or corrupted."
       }, { status: 400 });
     }
 
@@ -40,18 +63,33 @@ export async function POST(req: NextRequest) {
       sections: [{ children: paragraphs }]
     });
     const outBuf = await Packer.toBuffer(doc);
-    const uint8 = new Uint8Array(outBuf);
 
-    return NextResponse.json(uint8, {
+    const downloadName = file.name.replace(/\.pdf$/i, '') + ".docx";
+
+    return new NextResponse(outBuf, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': `attachment; filename="${ file.name.replace(/\.pdf$/i, '') }.docx"`,
-        // 自定义 header 传递警告信息给前端
+        'Content-Disposition': `attachment; filename="${downloadName}"`,
         "X-Warning-Message": "Some parts of this PDF are scanned images or image tables. These cannot be converted in Basic version."
       }
     });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: 'Convert failed, file may be encrypted or corrupted' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, msg: 'Convert failed, file may be encrypted or corrupted' },
+      { status: 500 }
+    );
   }
+}
+
+// 跨域预检
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    headers: {
+      "Access-Control-Allow-Origin": "https://filedocswift.com",
+      "Access-Control-Allow-Methods": "POST,OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Credentials": "true",
+    },
+  });
 }

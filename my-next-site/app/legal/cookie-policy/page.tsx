@@ -5,7 +5,17 @@ export const metadata: Metadata = {
   description: "Cookie Policy for FileDocSwift. Learn how we use necessary, analytics and advertising cookies from Google Analytics and AdSense.",
   alternates: {
     canonical: "https://www.filedocswift.com/legal/cookie-policy"
-  }
+  },
+  openGraph: {
+    url: "https://www.filedocswift.com/legal/cookie-policy",
+    type: "website",
+    locale: "en_US",
+    siteName: "FileDocSwift",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function CookiePolicyPage() {
@@ -40,10 +50,13 @@ export default function CookiePolicyPage() {
         <section className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-3">3. Your Cookie Choices</h2>
           <p className="mb-3">
-            When you first visit our site, our Cookie Banner lets you Accept All or Reject Non-Essential cookies.
+            When you first visit our site, our Cookie Banner lets you Accept All or select Only Necessary cookies.
+          </p>
+          <p className="mb-3">
+            You can revisit your preferences anytime by clicking the “Cookie Settings” link in our footer.
           </p>
           <p>
-            You can manage or delete cookies through your browser settings. If you reject non-essential cookies, analytics and personalized ads will not load.
+            You can also manage or delete cookies through your browser settings. If you select Only Necessary, analytics and personalized ads will not load.
           </p>
         </section>
         <section className="mb-8">

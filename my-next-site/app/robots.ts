@@ -7,6 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: [
         '/api/',
+        '/auth/dashboard',
       ],
     },
     sitemap: 'https://www.filedocswift.com/sitemap.xml',

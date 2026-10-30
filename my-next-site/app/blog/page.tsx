@@ -8,7 +8,17 @@ export const metadata: Metadata = {
   title: "Blog | Document Conversion Guides & Tips - FileDocSwift",
   description: "Guides and tips for PDF and document conversion. Learn how to convert PDF to Word and manage your digital documents easily.",
   alternates: {
-    canonical: 'https://www.filedocswift.com/blog',
+    canonical: "https://filedocswift.com/blog",
+  },
+  openGraph: {
+    url: "https://filedocswift.com/blog",
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'FileDocSwift',
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

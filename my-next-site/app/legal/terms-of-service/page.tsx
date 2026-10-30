@@ -5,7 +5,17 @@ export const metadata: Metadata = {
   description: "Terms of Service for FileDocSwift. Rules, disclaimers and liability terms for using our free PDF to Word online conversion service.",
   alternates: {
     canonical: "https://www.filedocswift.com/legal/terms-of-service"
-  }
+  },
+  openGraph: {
+    url: "https://www.filedocswift.com/legal/terms-of-service",
+    type: "website",
+    locale: "en_US",
+    siteName: "FileDocSwift",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function TermsOfServicePage() {

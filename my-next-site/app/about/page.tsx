@@ -1,12 +1,18 @@
-import type { Metadata } from 'next'
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About Us | FileDocSwift',
-  description: 'Learn about FileDocSwift, our mission to provide simple, secure free online document conversion tools including PDF to Word.',
-  alternates: {
-    canonical: 'https://www.filedocswift.com/about',
+  canonical: "https://filedocswift.com/about",
+  openGraph: {
+    url: "https://filedocswift.com/about",
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'FileDocSwift',
   },
-}
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
 
 export default function AboutPage() {
   return (
