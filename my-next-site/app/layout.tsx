@@ -1,7 +1,7 @@
-import Navbar from './components/Navbar'
-import Footer from './components/Footer'
-import CookieConsent from './components/CookieConsent'
-import GdprScripts from './components/GdprScripts'
+import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
+import CookieConsent from '../components/CookieConsent'
+import GdprScripts from '../components/GdprScripts'
 import { Script } from 'next/script';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
