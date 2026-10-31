@@ -70,7 +70,7 @@ export default function Navbar() {
             {isLoggedIn ? (
               <>
                 <Link
-                  href="/auth/dashboard"
+                  href="/dashboard"
                   className="text-sm text-gray-600 hover:text-blue-600"
                 >
                   Dashboard
@@ -85,13 +85,13 @@ export default function Navbar() {
             ) : (
               <>
                 <Link
-                  href="/auth/login"
+                  href="/login"
                   className="text-sm text-gray-600 hover:text-blue-600"
                 >
                   Login
                 </Link>
                 <Link
-                  href="/auth/register"
+                  href="/register"
                   className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                 >
                   Register
@@ -127,7 +127,7 @@ export default function Navbar() {
                 {isLoggedIn ? (
                   <>
                     <Link
-                      href="/auth/dashboard"
+                      href="/dashboard"
                       onClick={() => setIsMenuOpen(false)}
                       className="text-sm text-gray-600 hover:text-blue-600"
                     >
@@ -146,14 +146,14 @@ export default function Navbar() {
                 ) : (
                   <>
                     <Link
-                      href="/auth/login"
+                      href="/login"
                       onClick={() => setIsMenuOpen(false)}
                       className="text-sm text-gray-600 hover:text-blue-600"
                     >
                       Login
                     </Link>
                     <Link
-                      href="/auth/register"
+                      href="/register"
                       onClick={() => setIsMenuOpen(false)}
                       className="px-4 py-2 bg-blue-600 text-white rounded text-sm w-fit hover:bg-blue-700"
                     >
