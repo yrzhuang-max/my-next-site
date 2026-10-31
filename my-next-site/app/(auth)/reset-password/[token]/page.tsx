@@ -6,7 +6,9 @@ type Props = { params: { token: string } };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const canonicalUrl = `https://filedocswift.com/reset-password/${params.token}`;
   return {
+        alternates: {
     canonical: canonicalUrl,
+        },
     openGraph: {
       url: canonicalUrl,
       type: 'website',

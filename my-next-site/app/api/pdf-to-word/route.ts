@@ -63,10 +63,11 @@ export async function POST(req: NextRequest) {
       sections: [{ children: paragraphs }]
     });
     const outBuf = await Packer.toBuffer(doc);
+    const uint8Buf = new Uint8Array(outBuf);
 
     const downloadName = file.name.replace(/\.pdf$/i, '') + ".docx";
 
-    return new NextResponse(outBuf, {
+    return new NextResponse(uint8Buf, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': `attachment; filename="${downloadName}"`,

@@ -64,7 +64,7 @@ Submitted via filedocswift.com contact form
     const { error } = await resend.emails.send({
       from: 'Contact <contact@filedocswift.com>',
       to: receiveEmail,
-      reply_to: email, // Resend SDK 是下划线 reply_to，不是 replyTo！这个是高频坑
+      replyTo: email, // Resend SDK 是下划线 reply_to，不是 replyTo！这个是高频坑
       subject,
       text,
       html,

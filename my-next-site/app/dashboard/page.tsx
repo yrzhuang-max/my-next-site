@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import DashboardClient from './DashboardClient';
 
 export const metadata: Metadata = {
+    alternates: {
   canonical: "https://filedocswift.com/dashboard",
+    },
   openGraph: {
     url: "https://filedocswift.com/dashboard",
     type: 'website',

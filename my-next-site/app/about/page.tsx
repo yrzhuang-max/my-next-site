@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  alternates: {
   canonical: "https://filedocswift.com/about",
+  },
   openGraph: {
     url: "https://filedocswift.com/about",
     type: 'website',
