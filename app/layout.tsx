@@ -1,4 +1,3 @@
-import './globals.css'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import CookieConsent from '../components/CookieConsent'
@@ -8,6 +7,10 @@ import Script from 'next/script';
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        {/* 引入 tailwind-cli 预编译输出的静态CSS，不再走Next内置CSS loader */}
+        <link rel="stylesheet" href="/tailwind.css" />
+      </head>
       <body>
         {/* 先给谷歌初始默认拒绝：必须放在最前面 */}
         <Script id="gtag-init" strategy="beforeInteractive">

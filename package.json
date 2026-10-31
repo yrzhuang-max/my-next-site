@@ -2,12 +2,12 @@
   "name": "my-next-site",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
+"scripts": {
+  "tw:watch": "tailwindcss -i ./app/globals.css -o ./public/tailwind.css --watch",
+  "tw:build": "tailwindcss -i ./app/globals.css -o ./public/tailwind.css --minify",
+  "build": "pnpm tw:build && next build",
+  "dev": "next dev"
+},
 "dependencies": {
     "next": "15.5.28",
     "react": "^18.3.1",
