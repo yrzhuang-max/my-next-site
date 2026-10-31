@@ -5,9 +5,7 @@ import autoprefixer from 'autoprefixer';
 const nextConfig: NextConfig = {
   trailingSlash: false,
   serverExternalPackages: ["pdf-parse"],
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  //eslint: {    ignoreDuringBuilds: true,  },
 };
 
 export default nextConfig;
