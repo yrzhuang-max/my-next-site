@@ -1,20 +1,22 @@
+import Script from 'next/script'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import CookieConsent from '../components/CookieConsent'
 import GdprScripts from '../components/GdprScripts'
+import type { ReactNode } from 'react'
 
-<script
-  async
-  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2652696013507160"
-  crossOrigin="anonymous"
-/>
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
         {/* 引入 tailwind-cli 预编译输出的静态CSS，不再走Next内置CSS loader */}
         <link rel="stylesheet" href="/tailwind.css" />
+        {/* AdSense 原生script，不使用Next Script组件，消除 data-nscript 告警 */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2652696013507160"
+          crossOrigin="anonymous"
+        />
       </head>
       <body>
         {/* 先给谷歌初始默认拒绝：必须放在最前面 */}
@@ -41,5 +43,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <GdprScripts />
       </body>
     </html>
-  );
+  )
 }
