@@ -2,7 +2,12 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import CookieConsent from '../components/CookieConsent'
 import GdprScripts from '../components/GdprScripts'
-import Script from 'next/script';
+
+<script
+  async
+  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2652696013507160"
+  crossOrigin="anonymous"
+/>
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

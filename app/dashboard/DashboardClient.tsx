@@ -20,8 +20,11 @@ export default function DashboardClient() {
           throw new Error('Unauthorized');
         }
         const data = await res.json();
-        setUser(data);
-      } catch {
+        console.log('【me接口完整返回】', data);
+        console.log('data.user = ', data.user);
+        setUser(data.user);
+      } catch (e) {
+        console.error('【请求异常】', e);
         setErr('未登录或登录已过期，正在跳转登录页');
         setTimeout(() => router.push('/login'), 1200);
       } finally {
@@ -67,8 +70,8 @@ export default function DashboardClient() {
       <p className="text-gray-600 mb-6">Welcome</p>
 
       <div className="border p-4 rounded mb-6">
-        <p className="mb-1"><span className="font-medium">User ID：</span>{user?.id}</p>
-        <p><span className="font-medium">Email：</span>{user?.email}</p>
+        <p className="mb-1"><span className="font-medium">User ID：</span>{user?.id ?? '无'}</p>
+        <p><span className="font-medium">Email：</span>{user?.email ?? '无'}</p>
       </div>
 
       <button
