@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   trailingSlash: false,
   serverExternalPackages: ["pdf-parse"],
-  //turbopack: false, 错误编码
+  // eslint: { ignoreDuringBuilds: true, },
 };
 
 export default nextConfig;
