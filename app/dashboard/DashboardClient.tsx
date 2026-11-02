@@ -102,7 +102,6 @@ export default function DashboardClient() {
       if ((e as Error)?.name !== 'AbortError') {
         console.error('Logout error', e);
       }
-    }
     } finally {
       localStorage.removeItem('token');
       router.push('/login');
