@@ -1,8 +1,9 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function RechargeSuccess() {
+// 抽离内部子组件，专门读取 searchParams
+function SuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
@@ -13,14 +14,13 @@ export default function RechargeSuccess() {
       router.push('/dashboard/recharge');
       return;
     }
-    // 可选：拉取订单信息确认（后端接口后续补齐）
     setLoading(false);
   }, [sessionId, router]);
 
   if (loading) return <div className="p-12 text-center">Verifying payment...</div>;
 
   return (
-    <main className="max-w-3xl mx-auto px-6 py-16 text-center">
+    <div className="max-w-3xl mx-auto px-6 py-16 text-center">
       <div className="text-green-600 text-5xl mb-4">✓</div>
       <h1 className="text-3xl font-bold mb-4">Payment Successful</h1>
       <p className="text-gray-600 mb-8">
@@ -40,6 +40,14 @@ export default function RechargeSuccess() {
           Buy more credits
         </button>
       </div>
-    </main>
+    </div>
+  );
+}
+
+export default function RechargeSuccess() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center">Loading...</div>}>
+      <SuccessContent />
+    </Suspense>
   );
 }
