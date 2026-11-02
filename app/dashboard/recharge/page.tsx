@@ -7,7 +7,7 @@ type PackageKey = 'pack_5' | 'pack_10' | 'pack_50';
 interface CreditPackage {
   key: PackageKey;
   credits: number;
-  pricePlaceholder: string;
+  price: string;
   description: string;
 }
 
@@ -15,19 +15,19 @@ const packages: CreditPackage[] = [
   {
     key: 'pack_5',
     credits: 5,
-    pricePlaceholder: '$?.??',
+    price: '$1.99',
     description: 'For occasional OCR conversions',
   },
   {
     key: 'pack_10',
     credits: 10,
-    pricePlaceholder: '$?.??',
+    price: '$2.99',
     description: 'Great for regular light usage',
   },
   {
     key: 'pack_50',
     credits: 50,
-    pricePlaceholder: '$?.??',
+    price: '$9.99',
     description: 'Best value for frequent OCR work',
   },
 ];
@@ -52,7 +52,6 @@ export default function RechargePage() {
       if (!res.ok || !data.ok) {
         throw new Error(data.msg || 'Failed to create checkout session');
       }
-      // 跳转Stripe收银台
       router.push(data.checkoutUrl);
     } catch (err) {
       setErrorMsg((err as Error).message);
@@ -85,7 +84,7 @@ export default function RechargePage() {
             className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
           >
             <h2 className="text-xl font-semibold">{pkg.credits} OCR Credits</h2>
-            <div className="text-2xl font-bold my-4">{pkg.pricePlaceholder}</div>
+            <div className="text-2xl font-bold my-4">{pkg.price}</div>
             <p className="text-gray-500 text-sm mb-6">{pkg.description}</p>
             <button
               onClick={() => handleBuy(pkg.key)}

@@ -137,6 +137,19 @@ export default function DashboardClient() {
         <p><span className="font-medium">Credit Balance:</span> {user?.credit_balance ?? 0}</p>
         <p><span className="font-medium">Subscription Plan:</span> {user?.subscription_plan ?? 'free'}</p>
         <p><span className="font-medium">Subscription Status:</span> {user?.subscription_status ?? 'inactive'}</p>
+
+        {/* ========== 新增充值入口 ========== */}
+        <div className="pt-3 mt-3 border-t border-gray-200">
+          <a
+            href="/dashboard/recharge"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded transition-colors"
+          >
+            Buy OCR Credits
+          </a>
+          <p className="text-gray-500 text-sm mt-2">
+            Credits for OCR scanned PDF conversion, permanent and never expire.
+          </p>
+        </div>
       </div>
 
       <button
