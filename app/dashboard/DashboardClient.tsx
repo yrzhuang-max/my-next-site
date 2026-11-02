@@ -11,10 +11,21 @@ export default function DashboardClient() {
 
   useEffect(() => {
     const fetchUser = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setErr('未登录或登录已过期，正在跳转登录页');
+        setTimeout(() => router.push('/login'), 1200);
+        setLoading(false);
+        return;
+      }
       try {
         const res = await fetch(`${base}/api/auth/me`, {
           method: 'GET',
-          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+          // ✅ 删除 credentials: 'include'
         });
         if (!res.ok) {
           throw new Error('Unauthorized');
@@ -25,6 +36,8 @@ export default function DashboardClient() {
         setUser(data.user);
       } catch (e) {
         console.error('【请求异常】', e);
+        // 拿到401就清除失效token
+        localStorage.removeItem('token');
         setErr('未登录或登录已过期，正在跳转登录页');
         setTimeout(() => router.push('/login'), 1200);
       } finally {
@@ -38,10 +51,12 @@ export default function DashboardClient() {
     try {
       await fetch(`${base}/api/auth/logout`, {
         method: 'POST',
-        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
+        // ✅ 删除 credentials: 'include'
       });
     } finally {
+      // 登出时清除本地token
+      localStorage.removeItem('token');
       router.push('/login');
     }
   };
