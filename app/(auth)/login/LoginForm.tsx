@@ -26,48 +26,50 @@ export default function LoginForm() {
   });
 
   const onSubmit = async (formData: FormData) => {
-    setLoading(true);
-    setServerErr('');
-    if (!hcaptchaToken) {
-      setServerErr("hCaptcha验证未完成");
-      setLoading(false);
-      return;
-    }
-    try {
-      const res = await fetch(`${base}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: "include",
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          hcaptchaToken: hcaptchaToken,
-        }),
-      });
+  setLoading(true);
+  setServerErr('');
+  if (!hcaptchaToken) {
+    setServerErr("hCaptcha验证未完成");
+    setLoading(false);
+    return;
+  }
+  try {
+    const res = await fetch(`${base}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // ✅ 删掉了 credentials: "include"
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password,
+        hcaptchaToken: hcaptchaToken,
+      }),
+    });
 
-      if (res.status === 429) {
-        setServerErr("Too many attempts, please try again later.");
-        setLoading(false);
-        captchaRef.current?.resetCaptcha();
-        setHcaptchaToken('');
-        return;
-      }
-
-      const result = await res.json();
-      if (!res.ok) {
-        setServerErr(result.msg);
-      } else {
-        router.push("/dashboard");
-      }
-    } catch (err) {
-      console.error(err);
-      setServerErr("Network error, please try again later.");
-    } finally {
+    if (res.status === 429) {
+      setServerErr("Too many attempts, please try again later.");
       setLoading(false);
       captchaRef.current?.resetCaptcha();
       setHcaptchaToken('');
+      return;
     }
-  };
+
+    const result = await res.json();
+    if (!res.ok) {
+      setServerErr(result.msg);
+    } else {
+      // ✅ 新增：保存 token 到 localStorage
+      localStorage.setItem("token", result.token);
+      router.push("/dashboard");
+    }
+  } catch (err) {
+    console.error(err);
+    setServerErr("Network error, please try again later.");
+  } finally {
+    setLoading(false);
+    captchaRef.current?.resetCaptcha();
+    setHcaptchaToken('');
+  }
+};
 
   return (
     <main className="max-w-md mx-auto mt-16 px-4">
