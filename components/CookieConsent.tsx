@@ -19,8 +19,8 @@ declare global {
 const STORAGE_KEY = 'cookie_consent';
 const defaultConsent: Consent = {
   necessary: true,
-  analytics: false,
-  advertising: false,
+  analytics: true,
+  advertising: true,
 };
 
 // 初始化读取本地存储，只在组件首次渲染时执行一次
@@ -116,7 +116,7 @@ export default function CookieConsent() {
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input
-              type="checkbox"
+              type="checkbox" 
               checked={consent.analytics}
               onChange={(e) => setConsent(p => ({ ...p, analytics: e.target.checked }))}
               className="accent-blue-600"
@@ -126,6 +126,7 @@ export default function CookieConsent() {
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
+
               checked={consent.advertising}
               onChange={(e) => setConsent(p => ({ ...p, advertising: e.target.checked }))}
               className="accent-blue-600"

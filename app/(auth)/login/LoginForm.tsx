@@ -59,8 +59,9 @@ export default function LoginForm() {
         setServerErr(result.msg);
       } else {
         localStorage.setItem("token", result.token);
-        // 重点：等待 auth 状态刷新完成，再跳转
         await refreshAuth();
+        // 兜底：等待状态同步完成再跳转
+        await new Promise(r => setTimeout(r, 120));
         router.push("/dashboard");
       }
     } catch (err) {
