@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/AuthContext";
+
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

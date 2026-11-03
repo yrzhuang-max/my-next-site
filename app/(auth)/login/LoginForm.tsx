@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import Link from 'next/link';
+import { useAuth } from "@/lib/AuthContext";
 
 const schema = z.object({
   email: z.string().email('Valid email required'),

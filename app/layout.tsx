@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import CookieConsent from '../components/CookieConsent'
 import GdprScripts from '../components/GdprScripts'
+import { AuthProvider } from '@/lib/AuthContext'
 import type { ReactNode } from 'react'
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -28,13 +29,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           `}
         </Script>
 
-        <Navbar />
-        <main className="min-h-screen">
-          {children}
-        </main>
-        <Footer />
-        <CookieConsent />
-        <GdprScripts />
+        <AuthProvider>
+          <Navbar />
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Footer />
+          <CookieConsent />
+          <GdprScripts />
+        </AuthProvider>
       </body>
     </html>
   )
