@@ -5,32 +5,42 @@ import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const router = useRouter();
 
-  // 检测登录状态：读取后端返回的登录Cookie（httpOnly，前端无法读取内容，只能判断有没有）
   useEffect(() => {
     const checkLogin = async () => {
+      const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setUserEmail(null);
+        return;
+      }
       try {
-        const base = process.env.NEXT_PUBLIC_API_BASE_URL;
         const res = await fetch(`${base}/api/auth/me`, {
-          credentials: "include",
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
-        setIsLoggedIn(res.ok);
+        if (!res.ok) {
+          localStorage.removeItem("token");
+          setUserEmail(null);
+          return;
+        }
+        const data = await res.json();
+        setUserEmail(data.user.email);
       } catch (err) {
-        setIsLoggedIn(false);
+        localStorage.removeItem("token");
+        setUserEmail(null);
       }
     };
     checkLogin();
   }, []);
 
-  const handleLogout = async () => {
-    const base = process.env.NEXT_PUBLIC_API_BASE_URL;
-    await fetch(`${base}/api/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-    });
-    setIsLoggedIn(false);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setUserEmail(null);
     router.push("/");
     router.refresh();
   };
@@ -67,8 +77,9 @@ export default function Navbar() {
 
           {/* 桌面端登录按钮组 */}
           <div className="hidden md:flex items-center gap-3">
-            {isLoggedIn ? (
+            {userEmail ? (
               <>
+                <span className="text-sm text-gray-500">{userEmail}</span>
                 <Link
                   href="/dashboard"
                   className="text-sm text-gray-600 hover:text-blue-600"
@@ -124,8 +135,9 @@ export default function Navbar() {
                 </Link>
               ))}
               <div className="border-t border-gray-100 pt-3 mt-2 flex flex-col gap-3">
-                {isLoggedIn ? (
+                {userEmail ? (
                   <>
+                    <span className="text-sm text-gray-500">{userEmail}</span>
                     <Link
                       href="/dashboard"
                       onClick={() => setIsMenuOpen(false)}
