@@ -1,6 +1,7 @@
 'use client';
 import Script from 'next/script';
 import { useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 
 type ConsentState = {
   necessary: boolean;
@@ -43,6 +44,16 @@ export default function GdprScripts() {
           crossOrigin="anonymous"
         />
       )}
+
+      {/* Vercel Analytics，复用当前 consent 状态拦截上报 */}
+      <Analytics
+        beforeSend={(event) => {
+          if (!consent.analytics) {
+            return null;
+          }
+          return event;
+        }}
+      />
     </>
   );
 }

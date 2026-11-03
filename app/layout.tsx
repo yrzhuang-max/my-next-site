@@ -4,9 +4,10 @@ import Footer from '../components/Footer'
 import CookieConsent from '../components/CookieConsent'
 import GdprScripts from '../components/GdprScripts'
 import { AuthProvider } from '@/lib/AuthContext'
+import { CookieConsentProvider } from '@/lib/CookieConsentContext'
 import type { ReactNode } from 'react'
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -30,13 +31,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </Script>
 
         <AuthProvider>
-          <Navbar />
-          <main className="min-h-screen">
-            {children}
-          </main>
-          <Footer />
-          <CookieConsent />
-          <GdprScripts />
+          <CookieConsentProvider>
+            <Navbar />
+            <main className="min-h-screen">
+              {children}
+            </main>
+            <Footer />
+            <CookieConsent />
+            <GdprScripts />
+          </CookieConsentProvider>
         </AuthProvider>
       </body>
     </html>

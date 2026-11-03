@@ -19,8 +19,8 @@ declare global {
 const STORAGE_KEY = 'cookie_consent';
 const defaultConsent: Consent = {
   necessary: true,
-  analytics: true,
-  advertising: true,
+  analytics: false,
+  advertising: false,
 };
 
 // 初始化读取本地存储，只在组件首次渲染时执行一次
@@ -86,7 +86,7 @@ export default function CookieConsent() {
     applyGtagConsent(c);
     setShow(false);
     // ✅ 保存后刷新，让GdprScripts重新读取配置、加载/移除脚本
-    window.location.reload();
+    // window.location.reload();
   };
 
   const acceptAll = () => {
