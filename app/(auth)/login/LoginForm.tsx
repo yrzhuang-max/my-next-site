@@ -6,7 +6,6 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import Link from 'next/link';
-import { useAuth } from "@/lib/AuthContext";
 
 const schema = z.object({
   email: z.string().email('Valid email required'),
@@ -21,7 +20,6 @@ export default function LoginForm() {
   const [hcaptchaToken, setHcaptchaToken] = useState('');
   const captchaRef = useRef<HCaptcha>(null);
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const { refreshAuth } = useAuth();
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -59,9 +57,6 @@ export default function LoginForm() {
         setServerErr(result.msg);
       } else {
         localStorage.setItem("token", result.token);
-        await refreshAuth();
-        // 兜底：等待状态同步完成再跳转
-        await new Promise(r => setTimeout(r, 120));
         router.push("/dashboard");
       }
     } catch (err) {

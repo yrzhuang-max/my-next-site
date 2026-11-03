@@ -1,14 +1,13 @@
 'use client';
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/AuthContext";
-
+import { useRouter, usePathname } from "next/navigation";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -38,7 +37,7 @@ export default function Navbar() {
       }
     };
     checkLogin();
-  }, []);
+  }, [pathname]); // pathname 变化（登录跳转dashboard）就重新请求
 
   const handleLogout = () => {
     localStorage.removeItem("token");
