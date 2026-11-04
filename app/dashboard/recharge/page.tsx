@@ -74,7 +74,7 @@ export default function RechargePage() {
         throw new Error(data.msg || 'Failed to create checkout session');
       }
       router.push(data.checkoutUrl);
-    } catch (err)
+    } catch (err) {
       setErrorMsg((err as Error).message);
     } finally {
       setLoadingKey(null);
