@@ -8,26 +8,22 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
 const schema = z.object({
-  email: z.string().email('Please enter a valid email'),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters long')
-    .refine(p => /[a-zA-Z]/.test(p), {
-      message: 'Password must contain at least one letter (A-Z, a-z)',
-    })
-    .refine(p => /[0-9]/.test(p), {
-      message: 'Password must contain at least one number (0-9)',
-    }),
+  email: z.string().email('Valid email required'),
+  password: z
+    .string()
+    .min(8, 'Minimum 8 characters')
+    .regex(/[a-zA-Z]/, 'Must contain at least one letter')
+    .regex(/[0-9]/, 'Must contain at least one number'),
 });
 type FormData = z.infer<typeof schema>;
 
 const HCaptcha = dynamic(() => import('@hcaptcha/react-hcaptcha'), {
   ssr: false,
-  loading: () => <p className="text-sm text-gray-500 py-2">Loading captcha…</p>
+  loading: () => <p className="text-sm text-gray-500 py-2">Loading captcha…</p>,
 });
 
 export default function RegisterForm() {
   const router = useRouter();
-  const [serverMsg, setServerMsg] = useState('');
   const [serverErr, setServerErr] = useState('');
   const [loading, setLoading] = useState(false);
   const [hcaptchaToken, setHcaptchaToken] = useState('');
@@ -38,8 +34,13 @@ export default function RegisterForm() {
     resolver: zodResolver(schema),
   });
 
+  const onCaptchaLoad = (instance: any) => {
+    captchaRef.current = instance;
+  };
+
   const onSubmit = async (formData: FormData) => {
     setLoading(true);
+    setServerErr('');
     if (!hcaptchaToken) {
       setServerErr("hCaptcha verification required");
       setLoading(false);
@@ -49,28 +50,27 @@ export default function RegisterForm() {
       const res = await fetch(`${base}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: "include",
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
           hcaptchaToken: hcaptchaToken,
         }),
       });
+
       const result = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setServerErr(result.detail || "Register failed");
-        setServerMsg("");
+        setServerErr(result.detail || "Registration failed");
+        captchaRef.current?.reset();
+        setHcaptchaToken('');
       } else {
-        setServerMsg(result.msg || "Register success");
-        setServerErr("");
-        router.push("/login");
+        router.push('/login?registered=true');
       }
     } catch (err) {
       console.error(err);
-      setServerErr("Request failed, please try again later");
+      setServerErr("Network error, please try again later.");
     } finally {
       setLoading(false);
-      captchaRef.current?.resetCaptcha();
+      captchaRef.current?.reset();
       setHcaptchaToken('');
     }
   };
@@ -78,13 +78,8 @@ export default function RegisterForm() {
   return (
     <main className="max-w-md mx-auto mt-16 px-4">
       <h1 className="text-2xl font-bold mb-2">Create Account</h1>
-      <p className="text-gray-600 mb-6">Sign up for FiledocSwift</p>
+      <p className="text-gray-600 mb-6">Join FiledocSwift</p>
 
-      {serverMsg && (
-        <div role="status" aria-live="polite" className="bg-green-50 text-green-700 p-3 rounded mb-4">
-          {serverMsg}
-        </div>
-      )}
       {serverErr && (
         <div role="alert" aria-live="assertive" className="bg-red-50 text-red-700 p-3 rounded mb-4">
           {serverErr}
@@ -120,9 +115,9 @@ export default function RegisterForm() {
           {errors.password && <p id="pw-error" className="text-red-600 text-sm mt-1">{errors.password.message}</p>}
         </div>
         <HCaptcha
-          ref={captchaRef}
           sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITEKEY!}
           languageOverride="en"
+          onLoad={onCaptchaLoad}
           onVerify={(token) => setHcaptchaToken(token)}
         />
         <button
@@ -130,10 +125,10 @@ export default function RegisterForm() {
           disabled={loading}
           className="w-full bg-blue-600 text-white py-2 rounded disabled:opacity-60"
         >
-          {loading ? 'Submitting…' : 'Register'}
+          {loading ? 'Creating…' : 'Register'}
         </button>
       </form>
-      <p className="mt-4 text-sm">
+      <p className="mt-3 text-sm">
         Already have an account? <Link href="/login" className="text-blue-600 underline">Sign in</Link>
       </p>
     </main>

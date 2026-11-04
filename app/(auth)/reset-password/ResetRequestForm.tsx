@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,77 +14,83 @@ type FormData = z.infer<typeof schema>;
 
 const HCaptcha = dynamic(() => import('@hcaptcha/react-hcaptcha'), {
   ssr: false,
-  loading: () => <p className="text-sm text-gray-500 py-2">Loading captcha…</p>
+  loading: () => <p className="text-sm text-gray-500 py-2">Loading captcha…</p>,
 });
 
 export default function ResetRequestForm() {
-  const [serverMsg, setServerMsg] = useState('');
+  const router = useRouter();
   const [serverErr, setServerErr] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [hcaptchaToken, setHcaptchaToken] = useState('');
   const captchaRef = useRef<any>(null);
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (data: FormData) => {
-    setServerMsg('');
-    setServerErr('');
+  const onCaptchaLoad = (instance: any) => {
+    captchaRef.current = instance;
+  };
+
+  const onSubmit = async (formData: FormData) => {
     setLoading(true);
+    setServerErr('');
+    setSuccessMsg('');
     if (!hcaptchaToken) {
-      setServerErr('Please complete hCaptcha');
+      setServerErr("hCaptcha verification required");
       setLoading(false);
       return;
     }
     try {
-      const base = process.env.NEXT_PUBLIC_API_BASE_URL;
       const res = await fetch(`${base}/api/auth/reset-password-request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: data.email,
+          email: formData.email,
           hcaptchaToken: hcaptchaToken,
         }),
       });
 
       if (res.status === 429) {
-        setServerErr("Too many attempts, please try again later.");
-        captchaRef.current?.resetCaptcha();
-        setHcaptchaToken('');
+        setServerErr("Too many reset requests, try again later.");
         setLoading(false);
+        captchaRef.current?.reset();
+        setHcaptchaToken('');
         return;
       }
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.detail || 'Failed to send link');
-      setServerMsg(json.msg);
-    } catch (e) {
-      console.error(e);
-      if (e instanceof Error) {
-        setServerErr(e.message);
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setServerErr(result.detail || "Request failed");
+        captchaRef.current?.reset();
+        setHcaptchaToken('');
       } else {
-        setServerErr('Failed to send link');
+        setSuccessMsg(result.msg);
       }
+    } catch (err) {
+      console.error(err);
+      setServerErr("Network error, please try again later.");
     } finally {
-      captchaRef.current?.resetCaptcha();
-      setHcaptchaToken('');
       setLoading(false);
+      captchaRef.current?.reset();
+      setHcaptchaToken('');
     }
   };
 
   return (
     <main className="max-w-md mx-auto mt-16 px-4">
-      <h1 className="text-2xl font-bold mb-2">Reset Your Password</h1>
-      <p className="text-gray-600 mb-6">Enter your email to receive a reset link</p>
+      <h1 className="text-2xl font-bold mb-2">Reset Password</h1>
+      <p className="text-gray-600 mb-6">Enter your email to receive reset link</p>
 
-      {serverMsg && (
-        <div role="status" aria-live="polite" className="bg-green-50 text-green-700 p-3 rounded mb-4">
-          {serverMsg}
-        </div>
-      )}
       {serverErr && (
         <div role="alert" aria-live="assertive" className="bg-red-50 text-red-700 p-3 rounded mb-4">
           {serverErr}
+        </div>
+      )}
+      {successMsg && (
+        <div role="status" aria-live="polite" className="bg-green-50 text-green-700 p-3 rounded mb-4">
+          {successMsg}
         </div>
       )}
 
@@ -93,6 +100,7 @@ export default function ResetRequestForm() {
           <input
             id="email"
             type="email"
+            autoComplete="email"
             {...register('email')}
             disabled={loading}
             className="w-full border p-2 rounded"
@@ -101,8 +109,9 @@ export default function ResetRequestForm() {
           {errors.email && <p id="email-error" className="text-red-600 text-sm mt-1">{errors.email.message}</p>}
         </div>
         <HCaptcha
-          ref={captchaRef}
           sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITEKEY!}
+          languageOverride="en"
+          onLoad={onCaptchaLoad}
           onVerify={(token) => setHcaptchaToken(token)}
         />
         <button
@@ -113,8 +122,11 @@ export default function ResetRequestForm() {
           {loading ? 'Sending…' : 'Send Reset Link'}
         </button>
       </form>
-      <p className="mt-4 text-sm">
-        Remember your password? <Link href="/login" className="text-blue-600 underline">Sign in</Link>
+      <p className="mt-4 text-sm text-gray-500">
+        Password reset link is valid for 1 hour and can only be used once.
+      </p>
+      <p className="mt-2 text-sm">
+        <Link href="/login" className="text-blue-600 underline">Back to sign in</Link>
       </p>
     </main>
   );

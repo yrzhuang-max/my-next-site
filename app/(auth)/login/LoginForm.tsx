@@ -31,6 +31,10 @@ export default function LoginForm() {
     resolver: zodResolver(schema),
   });
 
+  const onCaptchaLoad = (instance: any) => {
+    captchaRef.current = instance;
+  };
+
   const onSubmit = async (formData: FormData) => {
     setLoading(true);
     setServerErr('');
@@ -53,7 +57,7 @@ export default function LoginForm() {
       if (res.status === 429) {
         setServerErr("Too many attempts, please try again later.");
         setLoading(false);
-        captchaRef.current?.resetCaptcha();
+        captchaRef.current?.reset();
         setHcaptchaToken('');
         return;
       }
@@ -61,6 +65,8 @@ export default function LoginForm() {
       const result = await res.json().catch(() => ({}));
       if (!res.ok) {
         setServerErr(result.detail || "Login failed");
+        captchaRef.current?.reset();
+        setHcaptchaToken('');
       } else {
         localStorage.setItem("token", result.token);
         router.push("/dashboard");
@@ -70,7 +76,7 @@ export default function LoginForm() {
       setServerErr("Network error, please try again later.");
     } finally {
       setLoading(false);
-      captchaRef.current?.resetCaptcha();
+      captchaRef.current?.reset();
       setHcaptchaToken('');
     }
   };
@@ -114,9 +120,9 @@ export default function LoginForm() {
           {errors.password && <p id="pw-error" className="text-red-600 text-sm mt-1">{errors.password.message}</p>}
         </div>
         <HCaptcha
-          ref={captchaRef}
           sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITEKEY!}
           languageOverride="en"
+          onLoad={onCaptchaLoad}
           onVerify={(token) => setHcaptchaToken(token)}
         />
         <button
