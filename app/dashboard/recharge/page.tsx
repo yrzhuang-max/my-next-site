@@ -49,14 +49,20 @@ export default function RechargePage() {
       if (!token) {
         throw new Error('Please login first');
       }
+
+      const payload = {
+        package_key: pkgKey,
+      };
+
       const res = await fetch(`${base}/api/recharge/create-order`, {
         method: 'POST',
         headers: {
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ packageKey: pkgKey }),
+        body: JSON.stringify(payload),
       });
+
       const text = await res.text();
       let data;
       try {
@@ -68,7 +74,7 @@ export default function RechargePage() {
         throw new Error(data.msg || 'Failed to create checkout session');
       }
       router.push(data.checkoutUrl);
-    } catch (err) {
+    } catch (err)
       setErrorMsg((err as Error).message);
     } finally {
       setLoadingKey(null);
@@ -84,7 +90,7 @@ export default function RechargePage() {
           <br />
           If you have an active Pro subscription, OCR usage consumes your Pro daily quota first, not credits.
         </p>
-      </>
+      </div>
 
       {errorMsg && (
         <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-8 border border-red-200">
