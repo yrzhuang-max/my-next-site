@@ -44,12 +44,13 @@ export default function RegisterForm() {
           hcaptchaToken: hcaptchaToken,
         }),
       });
-      const result = await res.json();
+      const result = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setServerErr(result.msg);
+        // ✅ 后端异常返回用 detail 字段
+        setServerErr(result.detail || "Register failed");
         setServerMsg("");
       } else {
-        setServerMsg(result.msg);
+        setServerMsg(result.msg || "Register success");
         setServerErr("");
         router.push("/login");
       }
