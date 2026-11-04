@@ -19,7 +19,23 @@ export default function DashboardClient() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
+  const [paymentNotice, setPaymentNotice] = useState<{ type: 'success' | 'cancel'; msg: string } | null>(null);
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  useEffect(() => {
+    // 读取充值回调参数
+    const params = new URLSearchParams(window.location.search);
+    const paid = params.get('paid');
+    if (paid === 'success') {
+      setPaymentNotice({ type: 'success', msg: 'Payment successful! Your OCR credits have been added.' });
+      params.delete('paid');
+      router.replace('/dashboard');
+    } else if (paid === 'cancel') {
+      setPaymentNotice({ type: 'cancel', msg: 'Payment cancelled. No credits were charged.' });
+      params.delete('paid');
+      router.replace('/dashboard');
+    }
+  }, [router]);
 
   useEffect(() => {
     let redirectTimer: ReturnType<typeof setTimeout> | undefined;
@@ -131,6 +147,16 @@ export default function DashboardClient() {
       <h1 className="text-2xl font-bold mb-2">Dashboard</h1>
       <p className="text-gray-600 mb-6">Welcome</p>
 
+      {paymentNotice && (
+        <div className={`p-4 rounded-lg mb-6 ${
+          paymentNotice.type === 'success'
+            ? 'bg-green-50 text-green-700 border border-green-200'
+            : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+        }`}>
+          {paymentNotice.msg}
+        </div>
+      )}
+
       <div className="border p-4 rounded mb-6 space-y-2">
         <p><span className="font-medium">User ID:</span> {user?.id ?? 'N/A'}</p>
         <p><span className="font-medium">Email:</span> {user?.email ?? 'N/A'}</p>
@@ -138,7 +164,7 @@ export default function DashboardClient() {
         <p><span className="font-medium">Subscription Plan:</span> {user?.subscription_plan ?? 'free'}</p>
         <p><span className="font-medium">Subscription Status:</span> {user?.subscription_status ?? 'inactive'}</p>
 
-        {/* ========== 新增充值入口 ========== */}
+        {/* ========== 充值入口 ========== */}
         <div className="pt-3 mt-3 border-t border-gray-200">
           <a
             href="/dashboard/recharge"

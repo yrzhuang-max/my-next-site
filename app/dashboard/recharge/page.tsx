@@ -36,19 +36,34 @@ export default function RechargePage() {
   const router = useRouter();
   const [loadingKey, setLoadingKey] = useState<PackageKey | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const handleBuy = async (pkgKey: PackageKey) => {
     setErrorMsg('');
     setLoadingKey(pkgKey);
     try {
-      const res = await fetch('/api/recharge/create-order', {
+      if (!base) {
+        throw new Error('API base url not configured');
+      }
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Please login first');
+      }
+      const res = await fetch(`${base}/api/recharge/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ packageKey: pkgKey }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(`Server returned HTML instead of JSON, status ${res.status}`);
+      }
       if (!res.ok || !data.ok) {
         throw new Error(data.msg || 'Failed to create checkout session');
       }
@@ -69,7 +84,7 @@ export default function RechargePage() {
           <br />
           If you have an active Pro subscription, OCR usage consumes your Pro daily quota first, not credits.
         </p>
-      </div>
+      </>
 
       {errorMsg && (
         <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-8 border border-red-200">

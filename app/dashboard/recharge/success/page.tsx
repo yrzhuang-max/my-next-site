@@ -2,7 +2,6 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-// 抽离内部子组件，专门读取 searchParams
 function SuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,8 +22,11 @@ function SuccessContent() {
     <div className="max-w-3xl mx-auto px-6 py-16 text-center">
       <div className="text-green-600 text-5xl mb-4">✓</div>
       <h1 className="text-3xl font-bold mb-4">Payment Successful</h1>
-      <p className="text-gray-600 mb-8">
-        Your OCR credits have been added to your account. Credits are ready for scanned PDF conversions.
+      <p className="text-gray-600 mb-2">
+        Your OCR credits have been added to your account.
+      </p>
+      <p className="text-gray-500 text-sm mb-8">
+        Session ID: {sessionId}
       </p>
       <div className="flex gap-4 justify-center">
         <button
