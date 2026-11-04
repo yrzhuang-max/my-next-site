@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import HCaptcha from '@hcaptcha/react-hcaptcha';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
 const schema = z.object({
@@ -13,12 +13,18 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
+// 动态懒加载 hCaptcha，ssr关闭，加载占位提示
+const HCaptcha = dynamic(() => import('@hcaptcha/react-hcaptcha'), {
+  ssr: false,
+  loading: () => <p className="text-sm text-gray-500 py-2">Loading captcha…</p>
+});
+
 export default function LoginForm() {
   const router = useRouter();
   const [serverErr, setServerErr] = useState('');
   const [loading, setLoading] = useState(false);
   const [hcaptchaToken, setHcaptchaToken] = useState('');
-  const captchaRef = useRef<HCaptcha>(null);
+  const captchaRef = useRef<any>(null);
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -52,9 +58,9 @@ export default function LoginForm() {
         return;
       }
 
-      const result = await res.json();
+      const result = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setServerErr(result.msg);
+        setServerErr(result.detail || "Login failed");
       } else {
         localStorage.setItem("token", result.token);
         router.push("/dashboard");

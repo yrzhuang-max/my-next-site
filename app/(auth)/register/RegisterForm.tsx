@@ -4,14 +4,26 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import HCaptcha from '@hcaptcha/react-hcaptcha';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
 const schema = z.object({
   email: z.string().email('Please enter a valid email'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters long')
+    .refine(p => /[a-zA-Z]/.test(p), {
+      message: 'Password must contain at least one letter (A-Z, a-z)',
+    })
+    .refine(p => /[0-9]/.test(p), {
+      message: 'Password must contain at least one number (0-9)',
+    }),
 });
 type FormData = z.infer<typeof schema>;
+
+const HCaptcha = dynamic(() => import('@hcaptcha/react-hcaptcha'), {
+  ssr: false,
+  loading: () => <p className="text-sm text-gray-500 py-2">Loading captcha…</p>
+});
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -19,7 +31,7 @@ export default function RegisterForm() {
   const [serverErr, setServerErr] = useState('');
   const [loading, setLoading] = useState(false);
   const [hcaptchaToken, setHcaptchaToken] = useState('');
-  const captchaRef = useRef<HCaptcha>(null);
+  const captchaRef = useRef<any>(null);
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -29,7 +41,7 @@ export default function RegisterForm() {
   const onSubmit = async (formData: FormData) => {
     setLoading(true);
     if (!hcaptchaToken) {
-      setServerErr("hCaptcha token为空！");
+      setServerErr("hCaptcha verification required");
       setLoading(false);
       return;
     }
@@ -46,7 +58,6 @@ export default function RegisterForm() {
       });
       const result = await res.json().catch(() => ({}));
       if (!res.ok) {
-        // ✅ 后端异常返回用 detail 字段
         setServerErr(result.detail || "Register failed");
         setServerMsg("");
       } else {
@@ -56,10 +67,9 @@ export default function RegisterForm() {
       }
     } catch (err) {
       console.error(err);
-      setServerErr("请求失败，请稍后重试");
+      setServerErr("Request failed, please try again later");
     } finally {
       setLoading(false);
-      // 重置验证码
       captchaRef.current?.resetCaptcha();
       setHcaptchaToken('');
     }
@@ -97,6 +107,7 @@ export default function RegisterForm() {
         </div>
         <div>
           <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
+          <p className="text-xs text-gray-500 mb-1">Minimum 8 characters, must include letters and numbers</p>
           <input
             id="password"
             type="password"

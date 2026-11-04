@@ -7,10 +7,17 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useParams, useRouter } from 'next/navigation';
 
 const schema = z.object({
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters long')
+    .refine(p => /[a-zA-Z]/.test(p), {
+      message: 'Password must contain at least one letter (A-Z, a-z)',
+    })
+    .refine(p => /[0-9]/.test(p), {
+      message: 'Password must contain at least one number (0-9)',
+    }),
   confirmPassword: z.string(),
 }).refine(d => d.password === d.confirmPassword, {
-  message: 'Passwords do not match',
+  message: 'The two passwords you entered do not match',
   path: ['confirmPassword'],
 });
 type FormData = z.infer<typeof schema>;
@@ -48,9 +55,9 @@ export default function ResetForm() {
           password: data.password,
         }),
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.detail || 'Reset failed');
-      setServerMsg(json.msg);
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.detail || 'Failed to reset password');
+      setServerMsg('Password reset successfully. Redirecting to login page...');
       setTimeout(() => router.push('/login'), 2000);
     } catch (e: any) {
       setServerErr(e.message);
@@ -62,7 +69,7 @@ export default function ResetForm() {
   return (
     <main className="max-w-md mx-auto mt-16 px-4">
       <h1 className="text-2xl font-bold mb-2">Set a New Password</h1>
-      <p className="text-gray-600 mb-6">Create your new account password</p>
+      <p className="text-gray-600 mb-6">Create a new secure password for your account</p>
 
       {serverMsg && (
         <div role="status" aria-live="polite" className="bg-green-50 text-green-700 p-3 rounded mb-4">
@@ -78,6 +85,7 @@ export default function ResetForm() {
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         <div>
           <label htmlFor="password" className="block text-sm font-medium mb-1">New Password</label>
+          <p className="text-xs text-gray-500 mb-1">Minimum 8 characters, must include letters and numbers</p>
           <input
             id="password"
             type="password"
@@ -108,8 +116,8 @@ export default function ResetForm() {
           {loading ? 'Updating…' : 'Update Password'}
         </button>
       </form>
-      <p className="mt-4 text-sm">
-        Link expires in 1 hour and can only be used once.
+      <p className="mt-4 text-sm text-gray-500">
+        Password reset link is valid for 1 hour and can only be used once.
       </p>
       <p className="mt-2 text-sm">
         <a href="/reset-password" className="text-blue-600 underline">Request a new reset link</a>

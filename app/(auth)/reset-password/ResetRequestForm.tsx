@@ -3,7 +3,7 @@ import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import HCaptcha from '@hcaptcha/react-hcaptcha';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
 const schema = z.object({
@@ -11,12 +11,17 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
+const HCaptcha = dynamic(() => import('@hcaptcha/react-hcaptcha'), {
+  ssr: false,
+  loading: () => <p className="text-sm text-gray-500 py-2">Loading captcha…</p>
+});
+
 export default function ResetRequestForm() {
   const [serverMsg, setServerMsg] = useState('');
   const [serverErr, setServerErr] = useState('');
   const [loading, setLoading] = useState(false);
   const [hcaptchaToken, setHcaptchaToken] = useState('');
-  const captchaRef = useRef<HCaptcha>(null);
+  const captchaRef = useRef<any>(null);
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -49,7 +54,7 @@ export default function ResetRequestForm() {
         setLoading(false);
         return;
       }
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json.detail || 'Failed to send link');
       setServerMsg(json.msg);
     } catch (e) {
@@ -82,7 +87,6 @@ export default function ResetRequestForm() {
         </div>
       )}
 
-      {/* eslint-disable-line react-hooks/refs */}
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         <div>
           <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
