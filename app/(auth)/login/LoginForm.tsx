@@ -13,10 +13,9 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
-// 动态懒加载 hCaptcha，ssr关闭，加载占位提示
 const HCaptcha = dynamic(() => import('@hcaptcha/react-hcaptcha'), {
   ssr: false,
-  loading: () => <p className="text-sm text-gray-500 py-2">Loading captcha…</p>
+  loading: () => <p className="text-sm text-gray-500 py-2">Loading captcha…</p>,
 });
 
 export default function LoginForm() {
@@ -24,16 +23,11 @@ export default function LoginForm() {
   const [serverErr, setServerErr] = useState('');
   const [loading, setLoading] = useState(false);
   const [hcaptchaToken, setHcaptchaToken] = useState('');
-  const captchaRef = useRef<any>(null);
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
-
-  const onCaptchaLoad = (instance: any) => {
-    captchaRef.current = instance;
-  };
 
   const onSubmit = async (formData: FormData) => {
     setLoading(true);
@@ -57,7 +51,6 @@ export default function LoginForm() {
       if (res.status === 429) {
         setServerErr("Too many attempts, please try again later.");
         setLoading(false);
-        captchaRef.current?.reset();
         setHcaptchaToken('');
         return;
       }
@@ -65,7 +58,6 @@ export default function LoginForm() {
       const result = await res.json().catch(() => ({}));
       if (!res.ok) {
         setServerErr(result.detail || "Login failed");
-        captchaRef.current?.reset();
         setHcaptchaToken('');
       } else {
         localStorage.setItem("token", result.token);
@@ -76,8 +68,6 @@ export default function LoginForm() {
       setServerErr("Network error, please try again later.");
     } finally {
       setLoading(false);
-      captchaRef.current?.reset();
-      setHcaptchaToken('');
     }
   };
 
@@ -122,8 +112,9 @@ export default function LoginForm() {
         <HCaptcha
           sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITEKEY!}
           languageOverride="en"
-          onLoad={onCaptchaLoad}
           onVerify={(token) => setHcaptchaToken(token)}
+          onExpire={() => setHcaptchaToken('')}
+          onError={() => setHcaptchaToken('')}
         />
         <button
           type="submit"

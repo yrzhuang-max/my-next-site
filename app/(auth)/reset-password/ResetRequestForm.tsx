@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -23,16 +23,11 @@ export default function ResetRequestForm() {
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [hcaptchaToken, setHcaptchaToken] = useState('');
-  const captchaRef = useRef<any>(null);
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
-
-  const onCaptchaLoad = (instance: any) => {
-    captchaRef.current = instance;
-  };
 
   const onSubmit = async (formData: FormData) => {
     setLoading(true);
@@ -56,14 +51,12 @@ export default function ResetRequestForm() {
       if (res.status === 429) {
         setServerErr("Too many reset requests, try again later.");
         setLoading(false);
-        captchaRef.current?.reset();
         setHcaptchaToken('');
         return;
       }
       const result = await res.json().catch(() => ({}));
       if (!res.ok) {
         setServerErr(result.detail || "Request failed");
-        captchaRef.current?.reset();
         setHcaptchaToken('');
       } else {
         setSuccessMsg(result.msg);
@@ -73,8 +66,6 @@ export default function ResetRequestForm() {
       setServerErr("Network error, please try again later.");
     } finally {
       setLoading(false);
-      captchaRef.current?.reset();
-      setHcaptchaToken('');
     }
   };
 
@@ -111,8 +102,9 @@ export default function ResetRequestForm() {
         <HCaptcha
           sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITEKEY!}
           languageOverride="en"
-          onLoad={onCaptchaLoad}
           onVerify={(token) => setHcaptchaToken(token)}
+          onExpire={() => setHcaptchaToken('')}
+          onError={() => setHcaptchaToken('')}
         />
         <button
           type="submit"
