@@ -3,20 +3,6 @@
 
 import { useEffect, useState } from 'react';
 
-declare global {
-  interface Window {
-    Paddle?: {
-      Checkout: {
-        open: (opts: {
-          transactionId: string;
-          successUrl: string;
-          cancelUrl: string;
-        }) => void;
-      };
-    };
-  }
-}
-
 const PADDLE_CLIENT_TOKEN = process.env.NEXT_PUBLIC_PADDLE_SANDBOX_CLIENT_TOKEN!;
 const SUCCESS_URL = 'https://filedocswift.com/dashboard?paid=success';
 const CANCEL_URL = 'https://filedocswift.com/pricing?paid=cancel';

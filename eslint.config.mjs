@@ -1,8 +1,8 @@
 import { defineConfig, globalIgnores } from "eslint/config";
-import nextTs from "eslint-config-next/typescript.js";
+import next from "eslint-config-next";
 
 const eslintConfig = defineConfig([
-  ...nextTs,
+  ...next.configs.typescript,
   globalIgnores([
     ".next/**",
     "out/**",
