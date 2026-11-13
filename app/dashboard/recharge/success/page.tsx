@@ -1,7 +1,6 @@
 // app/dashboard/recharge/success/page.tsx
 'use client';
-
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 function SuccessContent() {
