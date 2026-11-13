@@ -3,7 +3,7 @@ import LoginForm from './LoginForm';
 
 export const metadata: Metadata = {
   alternates: {
-  canonical: "https://filedocswift.com/login",
+    canonical: "https://filedocswift.com/login",
   },
   openGraph: {
     url: "https://filedocswift.com/login",

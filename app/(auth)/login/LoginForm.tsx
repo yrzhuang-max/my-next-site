@@ -1,3 +1,4 @@
+// D:\my-next-site\app\(auth)\login\LoginForm.tsx
 'use client';
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -23,7 +24,9 @@ export default function LoginForm() {
   const [serverErr, setServerErr] = useState('');
   const [loading, setLoading] = useState(false);
   const [hcaptchaToken, setHcaptchaToken] = useState('');
+
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+  console.log("API base currently:", base);
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -56,6 +59,7 @@ export default function LoginForm() {
       }
 
       const result = await res.json().catch(() => ({}));
+      console.log("login result raw:", result);
       if (!res.ok) {
         setServerErr(result.detail || "Login failed");
         setHcaptchaToken('');

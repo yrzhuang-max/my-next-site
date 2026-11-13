@@ -1,54 +1,62 @@
+// app/dashboard/recharge/success/page.tsx
 'use client';
-import { Suspense, useEffect, useState } from 'react';
+
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 function SuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get('session_id');
+  const successFlag = searchParams.get('success');
   const [loading, setLoading] = useState(true);
+  const [msg, setMsg] = useState('Verifying your purchase…');
 
   useEffect(() => {
-    if (!sessionId) {
+    if (successFlag !== '1') {
       router.push('/dashboard/recharge');
       return;
     }
+    setMsg('Payment confirmed! Credits will be credited shortly.');
     setLoading(false);
-  }, [sessionId, router]);
+  }, [successFlag, router]);
 
-  if (loading) return <div className="p-12 text-center">Verifying payment...</div>;
+  if (loading) {
+    return (
+      <div className="p-12 text-center">
+        <p className="text-lg">Verifying your purchase…</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-16 text-center">
-      <div className="text-green-600 text-5xl mb-4">✓</div>
+    <div className="max-w-2xl mx-auto px-6 py-20 text-center">
+      <div className="text-6xl mb-6">✅</div>
       <h1 className="text-3xl font-bold mb-4">Payment Successful</h1>
-      <p className="text-gray-600 mb-2">
-        Your OCR credits have been added to your account.
+      <p className="text-gray-500 mb-8">{msg}</p>
+      <p className="text-gray-400 text-sm mb-8">
+        If your credits do not appear within a few minutes, refresh your dashboard.
       </p>
-      <p className="text-gray-500 text-sm mb-8">
-        Session ID: {sessionId}
-      </p>
-      <div className="flex gap-4 justify-center">
+      <div className="flex justify-center gap-4">
         <button
           onClick={() => router.push('/dashboard')}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg"
+          className="px-5 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700"
         >
           Go to Dashboard
         </button>
         <button
           onClick={() => router.push('/dashboard/recharge')}
-          className="border border-gray-300 px-5 py-2.5 rounded-lg hover:bg-gray-50"
+          className="px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100"
         >
-          Buy more credits
+          Back to Plans
         </button>
       </div>
     </div>
   );
 }
 
-export default function RechargeSuccess() {
+export default function RechargeSuccessPage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center">Loading...</div>}>
+    <Suspense fallback={<div className="p-12 text-center">Loading…</div>}>
       <SuccessContent />
     </Suspense>
   );

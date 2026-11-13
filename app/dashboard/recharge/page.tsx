@@ -1,131 +1,256 @@
+// app/dashboard/recharge/page.tsx
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-type PackageKey = 'pack_5' | 'pack_10' | 'pack_50';
+type User = {
+  id: number;
+  email: string;
+  credit_balance: number;
+  subscription_plan: string;
+  subscription_status: string;
+};
 
-interface CreditPackage {
-  key: PackageKey;
-  credits: number;
-  price: string;
-  description: string;
-}
+type PricePlan = {
+  price_id: string;
+  name: string;
+  credit_amount: number;
+  plan_type: 'points' | 'monthly' | 'yearly';
+};
 
-const packages: CreditPackage[] = [
-  {
-    key: 'pack_5',
-    credits: 5,
-    price: '$1.99',
-    description: 'For occasional OCR conversions',
-  },
-  {
-    key: 'pack_10',
-    credits: 10,
-    price: '$2.99',
-    description: 'Great for regular light usage',
-  },
-  {
-    key: 'pack_50',
-    credits: 50,
-    price: '$9.99',
-    description: 'Best value for frequent OCR work',
-  },
-];
+const FETCH_TIMEOUT_MS = 8000;
 
 export default function RechargePage() {
   const router = useRouter();
-  const [loadingKey, setLoadingKey] = useState<PackageKey | null>(null);
-  const [errorMsg, setErrorMsg] = useState('');
   const base = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  const handleBuy = async (pkgKey: PackageKey) => {
-    setErrorMsg('');
-    setLoadingKey(pkgKey);
-    try {
+  const [user, setUser] = useState<User | null>(null);
+  const [plans, setPlans] = useState<PricePlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState('');
+  const [checkoutLoadingId, setCheckoutLoadingId] = useState<string | null>(null);
+
+  // Fetch current user for subscription guard
+  useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    const fetchUser = async () => {
       if (!base) {
-        throw new Error('API base url not configured');
+        setErr('API base url is not configured.');
+        setLoading(false);
+        return;
       }
       const token = localStorage.getItem('token');
       if (!token) {
-        throw new Error('Please login first');
+        router.push('/login');
+        return;
       }
+      try {
+        const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+        const res = await fetch(`${base}/api/auth/me`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          signal,
+        });
+        clearTimeout(timeout);
 
-      const payload = {
-        package_key: pkgKey,
-      };
+        if (!res.ok) {
+          if (res.status === 401) {
+            localStorage.removeItem('token');
+            router.push('/login');
+            return;
+          }
+          setErr(`Failed to load user, status: ${res.status}`);
+          return;
+        }
+        const data = await res.json();
+        if (!data || !data.user) {
+          setErr('Invalid user data from server.');
+          return;
+        }
+        setUser(data.user);
+      } catch (e: unknown) {
+        if ((e as Error)?.name !== 'AbortError') {
+          console.error('Failed to fetch user', e);
+          setErr('Network error while loading user profile.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      const res = await fetch(`${base}/api/recharge/create-order`, {
+    fetchUser();
+    return () => controller.abort();
+  }, [base, router]);
+
+  // Fetch available paddle price plans
+  useEffect(() => {
+    if (!user || !base) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const controller = new AbortController();
+    const fetchPlans = async () => {
+      try {
+        const res = await fetch(`${base}/api/paddle/plans`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          signal: controller.signal,
+        });
+        if (res.ok) {
+          const list = await res.json();
+          setPlans(list);
+        }
+      } catch (e: unknown) {
+        if ((e as Error)?.name !== 'AbortError') {
+          console.error('Failed to load price plans', e);
+        }
+      }
+    };
+    fetchPlans();
+    return () => controller.abort();
+  }, [user, base]);
+
+  const startCheckout = async (priceId: string) => {
+    if (!base) return;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+    setCheckoutLoadingId(priceId);
+    try {
+      const res = await fetch(`${base}/api/paddle/checkout`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ price_id: priceId }),
       });
-
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        throw new Error(`Server returned HTML instead of JSON, status ${res.status}`);
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(json.detail || 'Failed to create checkout session');
+        return;
       }
-      if (!res.ok || !data.ok) {
-        throw new Error(data.msg || 'Failed to create checkout session');
-      }
-      router.push(data.checkoutUrl);
+      window.location.href = json.checkout_url;
     } catch (err) {
-      setErrorMsg((err as Error).message);
+      alert('Network error when creating checkout, please try again.');
+      console.error(err);
     } finally {
-      setLoadingKey(null);
+      setCheckoutLoadingId(null);
     }
   };
 
-  return (
-    <main className="max-w-5xl mx-auto px-6 py-12">
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold mb-3">Buy OCR Conversion Credits</h1>
-        <p className="text-gray-600">
-          Credits are permanent and never expire. 1 credit = 1 OCR scanned PDF conversion.
-          <br />
-          If you have an active Pro subscription, OCR usage consumes your Pro daily quota first, not credits.
-        </p>
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto px-6 py-16 text-center">
+        <p>Loading plans...</p>
       </div>
+    );
+  }
 
-      {errorMsg && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-8 border border-red-200">
-          {errorMsg}
+  if (err) {
+    return (
+      <div className="max-w-5xl mx-auto px-6 py-16">
+        <div className="bg-red-50 text-red-700 p-4 rounded-lg">{err}</div>
+      </div>
+    );
+  }
+
+  const hasActiveSubscription =
+  !!user?.subscription_expires_at && new Date(user.subscription_expires_at) > new Date();
+
+  const pointPlans = plans.filter((p) => p.plan_type === 'points');
+  const subPlans = plans.filter((p) => p.plan_type === 'monthly' || p.plan_type === 'yearly');
+
+  return (
+    <div className="max-w-5xl mx-auto px-6 py-16">
+      <h1 className="text-3xl font-bold text-center mb-3">OCR Credit Plans</h1>
+      <p className="text-center text-gray-500 mb-12">
+        Buy one‑time credits or subscribe for recurring quota
+      </p>
+
+      {hasActiveSubscription && (
+        <div className="max-w-2xl mx-auto mb-10 p-4 border border-amber-200 bg-amber-50 rounded-lg text-amber-700 text-center">
+          You have an active subscription. You may only purchase one-time point packs.
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {packages.map((pkg) => (
-          <div
-            key={pkg.key}
-            className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
-          >
-            <h2 className="text-xl font-semibold">{pkg.credits} OCR Credits</h2>
-            <div className="text-2xl font-bold my-4">{pkg.price}</div>
-            <p className="text-gray-500 text-sm mb-6">{pkg.description}</p>
-            <button
-              onClick={() => handleBuy(pkg.key)}
-              disabled={loadingKey === pkg.key}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg disabled:opacity-60 transition-colors"
-            >
-              {loadingKey === pkg.key ? 'Processing...' : 'Buy Now'}
-            </button>
+      <section className="mb-16">
+        <h2 className="text-xl font-semibold mb-6">One‑time Credits</h2>
+        {pointPlans.length === 0 ? (
+          <p className="text-gray-500">No point packs available.</p>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-6">
+            {pointPlans.map((plan) => (
+              <div key={plan.price_id} className="border rounded-xl p-6 md:col-start-2">
+                <h3 className="text-lg font-bold">{plan.name}</h3>
+                <p className="text-2xl font-bold mt-2">{plan.credit_amount} Credits</p>
+                <p className="text-gray-500 text-sm mt-2">Permanent one-time OCR credits, no expiry</p>
+                <button
+                  onClick={() => startCheckout(plan.price_id)}
+                  disabled={checkoutLoadingId === plan.price_id}
+                  className="mt-6 w-full bg-slate-900 text-white py-2 rounded-lg hover:bg-slate-700 disabled:opacity-60"
+                >
+                  {checkoutLoadingId === plan.price_id ? 'Processing…' : 'Buy Now'}
+                </button>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        )}
+      </section>
 
-      <div className="mt-10">
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="text-blue-600 hover:underline"
-        >
-          ← Back to Dashboard
-        </button>
-      </div>
-    </main>
+      <section>
+        <h2 className="text-xl font-semibold mb-6">Recurring Subscriptions</h2>
+        {subPlans.length === 0 ? (
+          <p className="text-gray-500">No subscription plans available.</p>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-6">
+            {subPlans.map((plan) => {
+              const disabled = hasActiveSubscription;
+              return (
+                <div
+                  key={plan.price_id}
+                  className={`border rounded-xl p-6 ${disabled ? 'bg-gray-50' : ''}`}
+                >
+                  <h3 className="text-lg font-bold">{plan.name}</h3>
+                  <p className="text-2xl font-bold mt-2">{plan.credit_amount} Credits / Cycle</p>
+                  <p className="text-gray-500 text-sm mt-2">
+                    {plan.plan_type === 'monthly' ? 'Monthly recurring quota' : 'Yearly recurring quota'}
+                  </p>
+                  <button
+                    onClick={() => startCheckout(plan.price_id)}
+                    disabled={disabled || checkoutLoadingId === plan.price_id}
+                    className="mt-6 w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 disabled:opacity-60"
+                  >
+                    {checkoutLoadingId === plan.price_id
+                      ? 'Processing…'
+                      : disabled
+                      ? 'Unavailable'
+                      : 'Subscribe'}
+                  </button>
+                  {disabled && (
+                    <p className="text-xs mt-2 text-amber-600">
+                      Cannot purchase while another subscription is active
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <p className="text-center text-gray-400 text-sm mt-12">
+        All purchases are processed securely by Paddle. You will be redirected to their checkout page.
+        One-time credits never expire. Subscription credits refresh each billing cycle while active.
+      </p>
+    </div>
   );
 }
