@@ -2,6 +2,7 @@
   "extends": ["next/core-web-vitals", "next/typescript"],
   "rules": {
     "react-hooks/refs": "off",
-    "react-hooks/set-state-in-effect": "off"
+    "react-hooks/set-state-in-effect": "off",
+    "next/next-vitals": "off"
   }
 }

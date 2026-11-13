@@ -9,6 +9,7 @@ type User = {
   credit_balance: number;
   subscription_plan: string;
   subscription_status: string;
+  subscription_expires_at: string | null;
 };
 
 type PricePlan = {
